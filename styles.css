@@ -1,0 +1,465 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        
+body {
+    font-family: 'Inter', sans-serif;
+    overflow: hidden; /* Evita el scroll */
+}
+
+/* --- Estilos de Inicio y Onboarding --- */
+.screen, .login-step {
+    transition: opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1), transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+#main-content {
+    transition: opacity 1s cubic-bezier(0.4, 0, 0.2, 1) 0.5s;
+}
+
+#animated-bg {
+    position: fixed;
+    inset: 0;
+    z-index: -10;
+    /* Fondo de pantalla por defecto */
+    background-image: url('https://c10.patreonusercontent.com/4/patreon-media/p/post/115987106/014a2a344eb04af0bd534066629930b5/eyJiIjo3MCwidyI6MTA4MH0%3D/1.gif?token-hash=FQipZ-GoI8DzRBu_sXt6i_LBQ2HyXOnQoWoL9BBK-aU%3D');
+    background-color: #111827; /* Color de fondo alternativo si el GIF no carga */
+    background-size: cover;
+    background-position: center;
+    transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1), filter 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* --- MEJORA: Capa de superposición para opacidad y contraste --- */
+#animated-bg::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.25); /* Capa oscura semitransparente */
+    z-index: 0;
+}
+
+
+#animated-bg.zoomed-in {
+    transform: scale(1.4);
+    filter: blur(12px);
+}
+
+.onboarding-step {
+    transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+}
+/* --- Fin de Estilos de Inicio --- */
+
+
+/* --- Temas de Color Manuales --- */
+:root {
+    --theme-bg-translucent: rgba(251, 207, 232, 0.75);
+    --theme-bg: rgb(251, 207, 232);
+    --theme-bg-hover: rgb(249, 168, 212);
+    --theme-border: rgba(131, 24, 67, 0.3);
+    --theme-text: rgb(131, 24, 67);
+}
+
+body.theme-pink {
+    --theme-bg-translucent: rgba(249, 231, 241, 0.85);
+    --theme-bg: rgb(249, 231, 241);
+    --theme-bg-hover: rgb(244, 212, 229);
+    --theme-border: rgba(190, 24, 93, 0.3);
+    --theme-text: rgb(190, 24, 93);
+}
+body.theme-rose {
+    --theme-bg-translucent: rgba(255, 231, 235, 0.85);
+    --theme-bg: rgb(255, 231, 235);
+    --theme-bg-hover: rgb(254, 205, 211);
+    --theme-border: rgba(225, 29, 72, 0.3);
+    --theme-text: rgb(225, 29, 72);
+}
+body.theme-fuchsia {
+    --theme-bg-translucent: rgba(245, 232, 255, 0.85);
+    --theme-bg: rgb(245, 232, 255);
+    --theme-bg-hover: rgb(233, 213, 255);
+    --theme-border: rgba(162, 28, 175, 0.3);
+    --theme-text: rgb(162, 28, 175);
+}
+body.theme-purple {
+    --theme-bg-translucent: rgba(243, 232, 255, 0.85);
+    --theme-bg: rgb(243, 232, 255);
+    --theme-bg-hover: rgb(229, 212, 255);
+    --theme-border: rgba(126, 34, 206, 0.3);
+    --theme-text: rgb(126, 34, 206);
+}
+body.theme-indigo {
+    --theme-bg-translucent: rgba(238, 242, 255, 0.85);
+    --theme-bg: rgb(238, 242, 255);
+    --theme-bg-hover: rgb(224, 231, 255);
+    --theme-border: rgba(67, 56, 202, 0.3);
+    --theme-text: rgb(67, 56, 202);
+}
+
+/* --- Aplicación del Tema de Color --- */
+#taskbar {
+    background-color: var(--theme-bg-translucent);
+    border-color: var(--theme-border) !important;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+}
+#taskbar .bg-pink-300\/50 { background-color: var(--theme-border); }
+#taskbar #clock { background-color: rgba(0,0,0,0.05); color: var(--theme-text); }
+#taskbar #clock:hover { background-color: rgba(0,0,0,0.1); }
+.wavy-circle-spinner { background: var(--theme-bg); }
+#start-menu, .popup-transition, #generic-modal > div, #onboarding-screen > div, #login-screen .bg-pink-200, #settings-window,
+#app-window, #app-window header {
+    background-color: var(--theme-bg) !important;
+    border-color: var(--theme-border) !important;
+    color-scheme: light;
+}
+#settings-window .bg-black\/5 { background-color: rgba(0,0,0,0.02) !important; }
+#settings-window .bg-black\/10 { background-color: rgba(0,0,0,0.05) !important; }
+
+#start-menu h2, #start-menu button, .popup-transition button, #generic-modal h2, #onboarding-screen h2, #login-screen h2, #settings-window h2, #settings-window h3, #settings-window h4, #settings-window button, #settings-window p, #settings-window span,
+#start-menu p, .popup-transition p, #generic-modal p, #onboarding-screen p, #login-screen p, #window-title {
+    color: var(--theme-text)
+}
+#start-menu button, #timer-popup button, #timer-widget-controls button,
+.login-step button:not(#google-login-choice-btn):not(#offline-login-choice-btn), #username-submit-btn,
+.onboarding-next-btn, #finish-onboarding-btn {
+    background-color: rgba(0,0,0, 0.05) !important;
+    color: var(--theme-text) !important;
+}
+#start-menu button:hover, #timer-popup button:hover, #timer-widget-controls button:hover,
+.login-step button:hover:not(#google-login-choice-btn):not(#offline-login-choice-btn), #username-submit-btn:hover,
+.onboarding-next-btn:hover, #finish-onboarding-btn:hover {
+    background-color: rgba(0,0,0, 0.1) !important;
+}
+#generic-modal-buttons button {
+    background-color: var(--theme-text) !important;
+    color: var(--theme-bg) !important;
+    opacity: 0.9;
+}
+#generic-modal-buttons button:hover {
+     opacity: 1;
+}
+.pin-display-dot.active-dot { background-color: var(--theme-text) !important; }
+.notification-pill { background: var(--theme-bg); color: var(--theme-text); border: 1px solid var(--theme-border) }
+.spinner > div {
+    background-color: rgba(0,0,0, 0.05);
+    border-color: var(--theme-text);
+}
+#drawer-indicator { color: var(--theme-text); opacity: 0.5; }
+#app-hub h3 { color: var(--theme-text); }
+#app-hub .border-pink-300\/50 { border-color: var(--theme-border); }
+
+
+/* --- Estilos Generales UI --- */
+.app-content::-webkit-scrollbar { width: 8px; }
+.app-content::-webkit-scrollbar-track { background: #f1f1f1; }
+.app-content::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
+.app-content::-webkit-scrollbar-thumb:hover { background: #555; }
+
+/* Oculta el contenido de la ventana durante la animación para un look más limpio */
+.window-animating > * { 
+    opacity: 0; 
+    transition: opacity 0.2s ease-in-out; 
+}
+#app-window.is-maximized { 
+    top: 1rem; 
+    left: 1rem; 
+    right: 1rem; 
+    bottom: 1rem; 
+}
+nav { 
+    transition: transform 0.4s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s ease; 
+}
+body.window-maximized nav { 
+    transform: translateY(150%); 
+    opacity: 0; 
+    pointer-events: none; 
+}
+
+.pulsating-btn { animation: pulse 2.5s infinite cubic-bezier(0.4, 0, 0.6, 1); }
+@keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7); }
+    50% { box-shadow: 0 0 0 8px rgba(255, 255, 255, 0); }
+}
+
+.spinner {
+    width: 44px; height: 44px; animation: spinner-y0fdc1 2s infinite ease; transform-style: preserve-3d;
+}
+.spinner > div {
+    height: 100%; position: absolute; width: 100%; border-width: 2px;
+}
+.spinner div:nth-of-type(1) { transform: translateZ(-22px) rotateY(180deg); }
+.spinner div:nth-of-type(2) { transform: rotateY(-270deg) translateX(50%); transform-origin: top right; }
+.spinner div:nth-of-type(3) { transform: rotateY(270deg) translateX(-50%); transform-origin: center left; }
+.spinner div:nth-of-type(4) { transform: rotateX(90deg) translateY(-50%); transform-origin: top center; }
+.spinner div:nth-of-type(5) { transform: rotateX(-90deg) translateY(50%); transform-origin: bottom center; }
+.spinner div:nth-of-type(6) { transform: translateZ(22px); }
+@keyframes spinner-y0fdc1 {
+    0% { transform: rotate(45deg) rotateX(-25deg) rotateY(25deg); }
+    50% { transform: rotate(45deg) rotateX(-385deg) rotateY(25deg); }
+    100% { transform: rotate(45deg) rotateX(-385deg) rotateY(385deg); }
+}
+
+#start-menu {
+    transform-origin: bottom left; transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+#start-menu:not(.visible) { transform: scale(0.95) translateY(10px); opacity: 0; pointer-events: none; }
+#start-menu.visible { transform: scale(1) translateY(0); opacity: 1; pointer-events: auto; }
+
+.wavy-circle-spinner {
+  --s: 220px; width: var(--s); aspect-ratio: 1;
+  --g:/calc(var(--s)*0.209) calc(var(--s)*0.209) radial-gradient(50% 50%,#000 99%,#0000 101%) no-repeat;
+  mask: calc(50% + var(--s)*0.37) calc(50% + var(--s)*0) var(--g),calc(50% + var(--s)*0.311) calc(50% + var(--s)*0.2) var(--g),calc(50% + var(--s)*0.154) calc(50% + var(--s)*0.337) var(--g),calc(50% + var(--s)*-0.053) calc(50% + var(--s)*0.366) var(--g),calc(50% + var(--s)*-242) calc(50% + var(--s)*0.28) var(--g),calc(50% + var(--s)*-0.355) calc(50% + var(--s)*0.104) var(--g),calc(50% + var(--s)*-0.355) calc(50% + var(--s)*-0.104) var(--g),calc(50% + var(--s)*-0.242) calc(50% + var(--s)*-0.28) var(--g),calc(50% + var(--s)*-0.053) calc(50% + var(--s)*-0.366) var(--g),calc(50% + var(--s)*0.154) calc(50% + var(--s)*-0.337) var(--g),calc(50% + var(--s)*0.311) calc(50% + var(--s)*-0.2) var(--g),radial-gradient(calc(var(--s)*0.448),#000 99%,#0000 101%) subtract,calc(50% + var(--s)*0.514) calc(50% + var(--s)*0.151) var(--g),calc(50% + var(--s)*0.351) calc(50% + var(--s)*0.405) var(--g),calc(50% + var(--s)*0.076) calc(50% + var(--s)*0.53) var(--g),calc(50% + var(--s)*-0.223) calc(50% + var(--s)*0.487) var(--g),calc(50% + var(--s)*-0.451) calc(50% + var(--s)*0.29) var(--g),calc(50% + var(--s)*-0.536) calc(50% + var(--s)*0) var(--g),calc(50% + var(--s)*-0.451) calc(50% + var(--s)*-0.29) var(--g),calc(50% + var(--s)*-0.223) calc(50% + var(--s)*-0.487) var(--g),calc(50% + var(--s)*0.076) calc(50% + var(--s)*-0.53) var(--g),calc(50% + var(--s)*0.351) calc(50% + var(--s)*-0.405) var(--g),calc(50% + var(--s)*0.514) calc(50% + var(--s)*-0.151) var(--g);
+  animation: slow-rotate 60s linear infinite;
+}
+@keyframes slow-rotate { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+#start-menu.visible .animate-on-show { animation: fadeInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1) backwards; }
+#start-menu.visible .animate-on-show:nth-child(1) { animation-delay: 0.1s; }
+#start-menu.visible .animate-on-show:nth-child(2) { animation-delay: 0.2s; }
+#start-menu.visible .animate-on-show:nth-child(3) { animation-delay: 0.3s; }
+#start-menu.visible .animate-on-show:nth-child(4) { animation-delay: 0.4s; }
+
+.pin-display-dot {
+    transition: background-color 0.2s ease-in-out;
+}
+.pin-keypad-btn {
+    -webkit-tap-highlight-color: transparent; /* Evita el destello azul en móviles */
+}
+@keyframes shake {
+  10%, 90% { transform: translate3d(-1px, 0, 0); }
+  20%, 80% { transform: translate3d(2px, 0, 0); }
+  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
+  40%, 60% { transform: translate3d(4px, 0, 0); }
+}
+.shake {
+  animation: shake 0.82s cubic-bezier(.36,.07,.19,.97) both;
+}
+
+/* --- Estilo de notificación tipo Píldora --- */
+.notification-pill {
+    font-weight: 500;
+    border-radius: 9999px;
+    padding: 12px 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    max-width: 350px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+#notification {
+    position: fixed;
+    top: 1.25rem; /* 20px */
+    left: 50%;
+    z-index: 50;
+    transform: translate(-50%, -150%);
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.3, 1.3, 0.6, 1), opacity 0.3s ease-out;
+}
+
+#notification.notification-visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* --- Estilos para Popups --- */
+.popup-transition {
+    transform-origin: bottom right;
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+.popup-transition.hidden {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- App Drawer & Taskbar Styles --- */
+#taskbar {
+    left: 1rem;
+    right: 1rem;
+    width: auto;
+    max-width: none;
+    transform: translateX(0);
+    border-radius: 1.5rem;
+    height: 60px;
+    transition: height 0.3s ease-in-out, background-color 0.5s ease, border-color 0.5s ease;
+    overflow: hidden;
+}
+
+#taskbar.drawer-open {
+    height: 350px;
+}
+
+#taskbar-main-apps {
+    position: absolute;
+    left: 68px;
+    top: 2px;
+    transform: translateX(0);
+    transition: all 0.3s ease-in-out;
+}
+
+#taskbar.drawer-open #taskbar-main-apps {
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+
+#app-hub {
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+    transform: translateY(20px);
+}
+
+#taskbar.drawer-open #app-hub {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+}
+
+.custom-app-item {
+    position: relative;
+}
+
+.custom-app-icon {
+    width: 100%;
+    aspect-ratio: 1/1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+    border-radius: 1.25rem;
+    padding: 8px;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    cursor: pointer;
+}
+
+.custom-app-item:hover .custom-app-icon {
+    transform: translateY(-8px) scale(1.05);
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.custom-app-icon img {
+    width: 50%;
+    height: 50%;
+    object-fit: contain;
+    border-radius: 8px;
+    margin-bottom: 4px;
+}
+
+.custom-app-icon span {
+    font-size: 10px;
+    font-weight: 500;
+    color: #374151;
+    text-align: center;
+    width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.app-actions {
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease 0.1s, bottom 0.2s ease 0.1s;
+}
+
+.custom-app-item:hover .app-actions {
+    opacity: 1;
+    pointer-events: auto;
+    bottom: -28px;
+}
+
+.app-action-btn {
+    width: 28px;
+    height: 28px;
+    background-color: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(4px);
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #4b5563;
+    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    transition: transform 0.2s ease, background-color 0.2s ease;
+}
+
+.app-action-btn:hover {
+    transform: scale(1.15);
+    background-color: white;
+}
+
+.delete-app-btn {
+    position: absolute;
+    top: -6px;
+    right: -6px;
+    width: 24px;
+    height: 24px;
+    background-color: #ef4444;
+    color: white;
+    border-radius: 9999px;
+    border: 2px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transform: scale(0);
+    opacity: 0;
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    z-index: 10;
+}
+
+.custom-app-item:hover .delete-app-btn {
+    transform: scale(1);
+    opacity: 1;
+}
+
+/* --- Settings Window Styles --- */
+#settings-window.hidden {
+    transform: scale(0.95) translateY(10px);
+    opacity: 0;
+    pointer-events: none;
+}
+#settings-window {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+}
+
+.settings-nav-btn {
+    transition: background-color 0.2s ease;
+}
+
+.settings-section {
+    animation: fadeIn 0.5s ease forwards;
+}
+
+#current-wallpaper-preview .wallpaper-preview-item {
+    aspect-ratio: 16/9;
+    width: 100%;
+    border-radius: 0.5rem;
+    overflow: hidden;
+    border: 2px solid var(--theme-border);
+}
+
+#current-wallpaper-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.wallpaper-option.active {
+    ring: 4px;
+    ring-color: var(--theme-text);
+    ring-offset-color: var(--theme-bg);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
