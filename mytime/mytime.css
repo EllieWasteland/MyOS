@@ -1,0 +1,156 @@
+:root {
+            --primary-color: #F97316;
+            --primary-color-rgb: 249, 115, 22;
+            --primary-gradient: linear-gradient(145deg, #F97316, #EA580C);
+            --panel-color: #1a1a1d;
+            --panel-color-darker: #121212;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #1a1a1d;
+            color: #E0E0E0;
+            background-image: radial-gradient(circle at top right, rgba(121, 68, 154, 0.1), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(68, 104, 154, 0.1), transparent 40%);
+            background-attachment: fixed;
+        }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
+        .main-container {
+            background-color: rgba(30, 30, 30, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .card {
+            background-color: rgba(42, 43, 46, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+        }
+        .card:hover { background-color: rgba(58, 59, 62, 0.8); }
+        .fade-in { animation: fadeIn 0.4s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: scale(0.98) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 10px; }
+
+        .taskbar {
+            background-color: rgba(30, 30, 30, 0.7);
+            backdrop-filter: blur(15px);
+            -webkit-backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 9999px;
+        }
+        .taskbar-button {
+            width: 56px; height: 56px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            transition: background-color 0.3s, color 0.3s, transform 0.2s ease;
+        }
+        .taskbar-button:hover { transform: scale(1.1); }
+        .taskbar-button.active { 
+            background-color: rgba(var(--primary-color-rgb), 0.2); 
+            color: var(--primary-color);
+        }
+
+        .color-picker-selected { 
+            outline: 2px solid var(--primary-color); 
+            transform: scale(1.15); 
+        }
+        #expanded-form {
+            max-height: 0; overflow: hidden;
+            transition: max-height 0.5s ease-in-out, opacity 0.5s ease-in-out; opacity: 0;
+        }
+        #add-task-container.expanded #expanded-form { max-height: 1000px; opacity: 1; }
+
+        .subtask-checkbox {
+            width: 24px; height: 24px; min-width: 24px; border-radius: 50%;
+            border: 2px solid #718096; background-color: #2A2B2E;
+            position: relative; display: flex; align-items: center; justify-content: center;
+        }
+        .subtask-checkbox.completed { 
+            background-color: var(--primary-color); 
+            border-color: var(--primary-color); 
+        }
+
+        input[type=number]::-webkit-inner-spin-button, 
+        input[type=number]::-webkit-outer-spin-button { 
+            -webkit-appearance: none; 
+            margin: 0; 
+        }
+      
+        .input-container {
+            background-color: rgba(30, 30, 30, 0.7);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            transition: all 0.3s ease;
+        }
+        .input-container:focus-within {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 2px rgba(var(--primary-color-rgb), 0.2);
+        }
+        .action-btn-primary {
+            width: 56px; height: 56px; border-radius: 50%;
+            background: var(--primary-gradient);
+            color: white;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 15px rgba(var(--primary-color-rgb), 0.3);
+            transition: all 0.3s ease;
+        }
+        .action-btn-primary:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(var(--primary-color-rgb), 0.4);
+        }
+
+        .action-btn-secondary {
+            width: 48px; height: 48px; border-radius: 50%;
+            background-color: #4B5563;
+            color: #E5E7EB;
+            display: flex; align-items: center; justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .action-btn-secondary:hover {
+            background-color: #6B7280;
+            transform: scale(1.1);
+        }
+
+        .bg-panel-color { background-color: var(--panel-color); }
+        .bg-panel-color-darker { background-color: var(--panel-color-darker); }
+
+        .add-item-shopping-btn {
+            background-color: var(--primary-color);
+        }
+        .add-item-shopping-btn:hover {
+            filter: brightness(1.1);
+        }
+        .text-primary { color: var(--primary-color); }
+
+        .project-progress-bar {
+            background-color: var(--primary-color);
+        }
+
+        .toggle-completed-btn {
+            color: var(--primary-color);
+        }
+
+        .file\:bg-primary\/20 {
+            background-color: rgba(var(--primary-color-rgb), 0.2) !important;
+        }
+        .file\:text-primary {
+             color: var(--primary-color) !important;
+        }
+        .hover\:file\:bg-primary\/40:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.4) !important;
+        }
+
+        .add-media-btn {
+            background-color: rgba(var(--primary-color-rgb), 0.2);
+            color: var(--primary-color);
+        }
+        .add-media-btn:hover {
+            background-color: rgba(var(--primary-color-rgb), 0.4);
+        }
