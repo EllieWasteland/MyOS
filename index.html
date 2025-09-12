@@ -139,7 +139,17 @@
 
 
     <div id="main-content" class="opacity-0 pointer-events-none">
-        <main id="desktop" class="h-screen w-screen relative p-4 md:p-6">
+        <!-- Google Search Widget -->
+        <div id="google-search-widget-container">
+            <form id="google-search-form" class="google-search-form">
+                <input type="text" id="google-search-input" placeholder="Buscar en Google..." autocomplete="off">
+                <button type="submit" id="google-search-button">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                </button>
+            </form>
+        </div>
+
+        <main id="desktop" class="h-screen w-screen relative p-4 md:p-6 pt-24">
             <div id="app-window" class="hidden absolute bg-pink-50 rounded-2xl shadow-2xl flex flex-col overflow-hidden border border-pink-200">
                 <header class="bg-pink-100 px-4 py-1 flex items-center justify-between border-b border-pink-200 cursor-move">
                     <div class="flex items-center gap-2">
@@ -373,6 +383,22 @@
             <div id="generic-modal-buttons" class="mt-6 flex justify-center"></div>
         </div>
     </div>
+    
+    <!-- MEJORA: Menú contextual para aplicaciones -->
+    <div id="app-context-menu" class="hidden absolute z-50">
+        <button class="context-menu-btn" data-action="open-window">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75" /></svg>
+            <span>Abrir</span>
+        </button>
+        <button class="context-menu-btn" data-action="open-tab">
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 6H5.25A2.25 2.25 0 003 8.25v10.5A2.25 2.25 0 005.25 21h10.5A2.25 2.25 0 0018 18.75V10.5m-4.5 0V6.75A2.25 2.25 0 0011.25 4.5h-7.5" /></svg>
+            <span>Abrir en pestaña</span>
+        </button>
+        <button class="context-menu-btn" data-action="add-desktop">
+           <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-1.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25A2.25 2.25 0 015.25 3h4.5M15 3h4.5a2.25 2.25 0 012.25 2.25v4.5" /></svg>
+            <span>Añadir a escritorio</span>
+        </button>
+    </div>
 
     <input type="file" id="wallpaper-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/gif">
 
@@ -385,6 +411,25 @@
                     .catch(error => console.log('Error al registrar el Service Worker:', error));
             });
         }
+    </script>
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // --- Lógica del Widget de Búsqueda de Google ---
+        const googleSearchForm = document.getElementById('google-search-form');
+        const googleSearchInput = document.getElementById('google-search-input');
+
+        if (googleSearchForm) {
+            googleSearchForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const query = googleSearchInput.value.trim();
+                if (query) {
+                    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+                    window.open(searchUrl, '_blank');
+                    googleSearchInput.value = '';
+                }
+            });
+        }
+    });
     </script>
 </body>
 </html>

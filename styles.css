@@ -1,7 +1,7 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,800;1,800&display=swap');
         
 body {
-    font-family: 'Inter', sans-serif;
+    font-family: 'Nunito', sans-serif;
     overflow: hidden; /* Evita el scroll */
 }
 
@@ -104,7 +104,7 @@ body.theme-indigo {
 #taskbar #clock:hover { background-color: rgba(0,0,0,0.1); }
 .wavy-circle-spinner { background: var(--theme-bg); }
 #start-menu, .popup-transition, #generic-modal > div, #onboarding-screen > div, #login-screen .bg-pink-200, #settings-window,
-#app-window, #app-window header {
+#app-window, #app-window header, #app-context-menu {
     background-color: var(--theme-bg) !important;
     border-color: var(--theme-border) !important;
     color-scheme: light;
@@ -113,9 +113,13 @@ body.theme-indigo {
 #settings-window .bg-black\/10 { background-color: rgba(0,0,0,0.05) !important; }
 
 #start-menu h2, #start-menu button, .popup-transition button, #generic-modal h2, #onboarding-screen h2, #login-screen h2, #settings-window h2, #settings-window h3, #settings-window h4, #settings-window button, #settings-window p, #settings-window span,
-#start-menu p, .popup-transition p, #generic-modal p, #onboarding-screen p, #login-screen p, #window-title {
+#start-menu p, .popup-transition p, #generic-modal p, #onboarding-screen p, #login-screen p, #window-title, .context-menu-btn {
     color: var(--theme-text)
 }
+.context-menu-btn:hover {
+    background-color: rgba(0,0,0,0.05) !important;
+}
+
 #start-menu button, #timer-popup button, #timer-widget-controls button,
 .login-step button:not(#google-login-choice-btn):not(#offline-login-choice-btn), #username-submit-btn,
 .onboarding-next-btn, #finish-onboarding-btn {
@@ -147,6 +151,13 @@ body.theme-indigo {
 
 
 /* --- Estilos Generales UI --- */
+
+/* ========== BUG FIX ========== */
+#app-window {
+    z-index: 20; /* Asegura que la ventana esté sobre los íconos del escritorio */
+}
+/* ========================== */
+
 .app-content::-webkit-scrollbar { width: 8px; }
 .app-content::-webkit-scrollbar-track { background: #f1f1f1; }
 .app-content::-webkit-scrollbar-thumb { background: #888; border-radius: 4px; }
@@ -357,44 +368,6 @@ body.window-maximized nav {
     text-overflow: ellipsis;
 }
 
-.app-actions {
-    position: absolute;
-    bottom: -16px;
-    left: 50%;
-    transform: translateX(-50%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.2s ease 0.1s, bottom 0.2s ease 0.1s;
-}
-
-.custom-app-item:hover .app-actions {
-    opacity: 1;
-    pointer-events: auto;
-    bottom: -28px;
-}
-
-.app-action-btn {
-    width: 28px;
-    height: 28px;
-    background-color: rgba(255, 255, 255, 0.7);
-    backdrop-filter: blur(4px);
-    border-radius: 9999px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #4b5563;
-    box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
-    transition: transform 0.2s ease, background-color 0.2s ease;
-}
-
-.app-action-btn:hover {
-    transform: scale(1.15);
-    background-color: white;
-}
 
 .delete-app-btn {
     position: absolute;
@@ -462,4 +435,110 @@ body.window-maximized nav {
 @keyframes fadeIn {
     from { opacity: 0; transform: translateY(10px); }
     to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Google Search Widget --- */
+#google-search-widget-container {
+    position: fixed;
+    top: 2rem; /* 32px */
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 40; /* Above desktop icons but below modals */
+    transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+}
+
+.google-search-form {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    max-width: 500px;
+    background-color: var(--theme-bg-translucent, rgba(249, 231, 241, 0.85));
+    border: 1px solid var(--theme-border, rgba(190, 24, 93, 0.3));
+    border-radius: 9999px; /* pill shape */
+    padding: 6px;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+}
+
+.google-search-form:focus-within {
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+    background-color: var(--theme-bg, rgb(249, 231, 241));
+}
+
+#google-search-input {
+    flex-grow: 1;
+    border: none;
+    outline: none;
+    background-color: transparent;
+    padding: 6px 12px;
+    font-size: 1rem;
+    color: var(--theme-text, rgb(190, 24, 93));
+}
+
+#google-search-input::placeholder {
+    color: var(--theme-text, rgb(190, 24, 93));
+    opacity: 0.6;
+}
+
+#google-search-button {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border: none;
+    background-color: rgba(0,0,0,0.05);
+    color: var(--theme-text, rgb(190, 24, 93));
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#google-search-button:hover {
+    background-color: rgba(0,0,0,0.1);
+}
+
+/* --- MEJORA: Ocultar barra de búsqueda al abrir una app --- */
+body.app-open #google-search-widget-container,
+body.window-maximized #google-search-widget-container {
+    transform: translate(-50%, -150%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* --- MEJORA: Menú contextual para apps --- */
+#app-context-menu {
+    border: 1px solid var(--theme-border, rgba(190, 24, 93, 0.3));
+    border-radius: 0.75rem; /* 12px */
+    box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+    padding: 0.5rem; /* 8px */
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem; /* 4px */
+    width: 220px;
+    transition: opacity 0.1s ease, transform 0.1s ease;
+    transform-origin: top left;
+}
+
+#app-context-menu.hidden {
+    opacity: 0;
+    transform: scale(0.95);
+    pointer-events: none;
+}
+
+.context-menu-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem; /* 12px */
+    padding: 0.5rem 0.75rem; /* 8px 12px */
+    border-radius: 0.5rem; /* 8px */
+    font-size: 0.875rem; /* 14px */
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    text-align: left;
+    width: 100%;
 }
