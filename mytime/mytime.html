@@ -19,32 +19,99 @@
     <div id="wallpaper-bg" class="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 z-0"></div>
 
     <div class="w-full h-screen p-4 pb-28 box-border flex justify-center items-center relative z-10">
-        <main class="w-full h-full max-w-5xl mx-auto main-container flex flex-col relative overflow-hidden">
+        <!-- Main container with responsive flex direction -->
+        <main class="w-full h-full max-w-7xl mx-auto main-container flex flex-col lg:flex-row lg:gap-4 relative overflow-hidden">
             
-            <!-- Main Content Area -->
-            <div class="relative w-full h-full flex-grow">
-                <!-- List View Container -->
-                <div id="app-content" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-0">
-                    <div id="summary-section" class="h-full flex flex-col p-6 overflow-y-auto">
-                        <h1 class="text-3xl font-bold mb-6 text-white">Resumen</h1>
-                        <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
-                    </div>
-                    <div id="tasks-section" class="hidden h-full flex flex-col p-6">
-                        <h1 class="text-3xl font-bold mb-6 text-white flex items-center"><span class="material-symbols-outlined mr-3">task_alt</span> Tareas</h1>
-                        <div id="tasks-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
-                    </div>
-                    <div id="projects-section" class="hidden h-full flex flex-col p-6">
-                        <h1 class="text-3xl font-bold mb-6 text-white">Proyectos</h1>
-                        <div id="projects-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
-                    </div>
-                    <div id="shopping-section" class="hidden h-full flex flex-col p-6">
-                        <h1 class="text-3xl font-bold mb-6 text-white">Compras</h1>
-                        <div id="shopping-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+            <!-- Left Column: Lists and Add Task Form -->
+            <div id="list-column" class="w-full lg:w-1/3 h-full flex flex-col">
+                <!-- Main Content Area (Lists) -->
+                <div class="relative w-full h-full flex-grow">
+                    <!-- List View Container -->
+                    <div id="app-content" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-0">
+                        <div id="summary-section" class="h-full flex flex-col p-6 overflow-y-auto">
+                            <h1 class="text-3xl font-bold mb-6 text-white">Resumen</h1>
+                            <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4"></div>
+                        </div>
+                        <div id="tasks-section" class="hidden h-full flex flex-col p-6">
+                            <h1 class="text-3xl font-bold mb-6 text-white flex items-center"><span class="material-symbols-outlined mr-3">task_alt</span> Tareas</h1>
+                            <div id="tasks-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                        </div>
+                        <div id="projects-section" class="hidden h-full flex flex-col p-6">
+                            <h1 class="text-3xl font-bold mb-6 text-white">Proyectos</h1>
+                            <div id="projects-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                        </div>
+                        <div id="shopping-section" class="hidden h-full flex flex-col p-6">
+                            <h1 class="text-3xl font-bold mb-6 text-white">Compras</h1>
+                            <div id="shopping-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                        </div>
                     </div>
                 </div>
 
-                 <!-- Shopping List Detail Panel -->
-                <div id="shopping-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color flex flex-col">
+                <!-- Add Task Form Container -->
+                <div id="add-task-container" class="hidden p-4 border-t border-gray-700/50 flex-shrink-0">
+                    <div id="add-task-form-wrapper" class="card p-4 transition-all duration-300">
+                        <form id="add-task-form">
+                            <div class="input-container">
+                                <input type="text" id="task-name-input" placeholder="Escribe una nueva tarea..." class="w-full bg-transparent text-white text-lg focus:outline-none" required>
+                            </div>
+                            <div id="expanded-form">
+                               <div class="wrapper-description border-t border-gray-600/50 pt-3 mt-3">
+                                   <div class="input-container">
+                                       <textarea id="task-description-input" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400" rows="2"></textarea>
+                                   </div>
+                               </div>
+                                <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-subtasks">
+                                    <h4 class="text-sm font-semibold text-gray-300 mb-2">Subtareas</h4>
+                                    <div id="subtasks-container" class="space-y-2"></div>
+                                    <div class="flex items-center mt-2">
+                                        <div class="input-container flex-grow">
+                                            <input type="text" id="subtask-input" placeholder="Añadir subtarea" class="w-full bg-transparent text-sm text-gray-400 focus:outline-none">
+                                        </div>
+                                        <button type="button" id="add-subtask-btn" class="ml-2 text-primary hover:opacity-80"><span class="material-symbols-outlined">add_circle</span></button>
+                                    </div>
+                                </div>
+                                <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-media">
+                                    <h4 class="text-sm font-semibold text-gray-300 mb-2">Medios</h4>
+                                    <div id="image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div><input type="file" id="image-file-input" class="hidden" multiple accept="image/*">
+                                </div>
+                                <div class="flex items-center justify-between mt-4 wrapper-options">
+                                    <div class="flex items-center gap-4">
+                                        <button type="button" id="add-photo-btn" class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">add_photo_alternate</span></button>
+                                        <button type="button" id="add-date-btn" class="flex items-center text-gray-400 hover:text-white"><span class="material-symbols-outlined">event</span><span id="date-preview" class="text-sm ml-2 text-primary"></span></button>
+                                        <input type="datetime-local" id="task-due-date" class="hidden">
+                                    </div>
+                                    <div id="color-picker" class="flex gap-2">
+                                        <div class="w-6 h-6 rounded-full bg-red-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(127, 29, 29, 0.2)"></div>
+                                        <div class="w-6 h-6 rounded-full bg-blue-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(30, 58, 138, 0.2)"></div>
+                                        <div class="w-6 h-6 rounded-full bg-green-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(22, 101, 52, 0.2)"></div>
+                                        <div class="w-6 h-6 rounded-full bg-yellow-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(113, 63, 18, 0.2)"></div>
+                                        <div class="w-6 h-6 rounded-full bg-purple-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(91, 33, 182, 0.2)"></div>
+                                    </div>
+                                </div>
+                                <div class="flex justify-center items-center gap-6 mt-4 border-t border-gray-700/50 pt-4">
+                                    <button type="button" id="cancel-add-task" class="action-btn-secondary" title="Cancelar">
+                                        <span class="material-symbols-outlined">close</span>
+                                    </button>
+                                    <button type="submit" id="add-item-btn" class="action-btn-primary" title="Añadir">
+                                        <span class="material-symbols-outlined">arrow_upward</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: Detail Panels -->
+            <div id="detail-column" class="absolute lg:relative inset-0 lg:inset-auto w-full lg:w-2/3 h-full">
+                <!-- Placeholder for large screens -->
+                <div id="detail-placeholder" class="hidden lg:flex flex-col items-center justify-center h-full text-gray-600 bg-black/20 rounded-2xl">
+                    <span class="material-symbols-outlined text-7xl">touch_app</span>
+                    <p class="mt-4 text-xl">Selecciona un elemento para ver sus detalles</p>
+                </div>
+
+                <!-- Shopping List Detail Panel -->
+                <div id="shopping-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color flex flex-col lg:rounded-2xl overflow-hidden">
                     <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <button id="back-to-shopping-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
                             <span class="material-symbols-outlined">arrow_back</span>
@@ -75,7 +142,7 @@
                 </div>
 
                  <!-- Project Detail Panel -->
-                <div id="project-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color flex flex-col">
+                <div id="project-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color flex flex-col lg:rounded-2xl overflow-hidden">
                     <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <button id="back-to-projects-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
                             <span class="material-symbols-outlined">arrow_back</span>
@@ -90,7 +157,7 @@
                 </div>
 
                 <!-- Task Detail/Edit Panel -->
-                <div id="task-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color-darker flex flex-col">
+                <div id="task-detail-panel" class="absolute inset-0 transition-all duration-500 ease-in-out transform translate-x-full bg-panel-color-darker flex flex-col lg:rounded-2xl overflow-hidden">
                     <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
                         <button id="back-to-list-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
                             <span class="material-symbols-outlined">arrow_back</span>
@@ -142,65 +209,10 @@
                 </div>
             </div>
             
-            <div id="add-task-container" class="hidden p-4 border-t border-gray-700/50 flex-shrink-0">
-                <div id="add-task-form-wrapper" class="card p-4 transition-all duration-300">
-                    <form id="add-task-form">
-                        <div class="input-container">
-                            <input type="text" id="task-name-input" placeholder="Escribe una nueva tarea..." class="w-full bg-transparent text-white text-lg focus:outline-none" required>
-                        </div>
-                        <div id="expanded-form">
-                           <div class="wrapper-description border-t border-gray-600/50 pt-3 mt-3">
-                               <div class="input-container">
-                                   <textarea id="task-description-input" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400" rows="2"></textarea>
-                               </div>
-                           </div>
-                            <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-subtasks">
-                                <h4 class="text-sm font-semibold text-gray-300 mb-2">Subtareas</h4>
-                                <div id="subtasks-container" class="space-y-2"></div>
-                                <div class="flex items-center mt-2">
-                                    <div class="input-container flex-grow">
-                                        <input type="text" id="subtask-input" placeholder="Añadir subtarea" class="w-full bg-transparent text-sm text-gray-400 focus:outline-none">
-                                    </div>
-                                    <button type="button" id="add-subtask-btn" class="ml-2 text-primary hover:opacity-80"><span class="material-symbols-outlined">add_circle</span></button>
-                                </div>
-                            </div>
-                            <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-media">
-                                <h4 class="text-sm font-semibold text-gray-300 mb-2">Medios</h4>
-                                <div id="image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div><input type="file" id="image-file-input" class="hidden" multiple accept="image/*">
-                            </div>
-                            <div class="flex items-center justify-between mt-4 wrapper-options">
-                                <div class="flex items-center gap-4">
-                                    <button type="button" id="add-photo-btn" class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">add_photo_alternate</span></button>
-                                    <button type="button" id="add-date-btn" class="flex items-center text-gray-400 hover:text-white"><span class="material-symbols-outlined">event</span><span id="date-preview" class="text-sm ml-2 text-primary"></span></button>
-                                    <input type="datetime-local" id="task-due-date" class="hidden">
-                                </div>
-                                <div id="color-picker" class="flex gap-2">
-                                    <div class="w-6 h-6 rounded-full bg-red-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(127, 29, 29, 0.2)"></div>
-                                    <div class="w-6 h-6 rounded-full bg-blue-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(30, 58, 138, 0.2)"></div>
-                                    <div class="w-6 h-6 rounded-full bg-green-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(22, 101, 52, 0.2)"></div>
-                                    <div class="w-6 h-6 rounded-full bg-yellow-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(113, 63, 18, 0.2)"></div>
-                                    <div class="w-6 h-6 rounded-full bg-purple-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(91, 33, 182, 0.2)"></div>
-                                </div>
-                            </div>
-                            <div class="flex justify-center items-center gap-6 mt-4 border-t border-gray-700/50 pt-4">
-                                <button type="button" id="cancel-add-task" class="action-btn-secondary" title="Cancelar">
-                                    <span class="material-symbols-outlined">close</span>
-                                </button>
-                                <button type="submit" id="add-item-btn" class="action-btn-primary" title="Añadir">
-                                    <span class="material-symbols-outlined">arrow_upward</span>
-                                </button>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
         </main>
     </div>
 
     <nav class="taskbar fixed bottom-4 left-1/2 -translate-x-1/2 shadow-lg p-2 flex items-center gap-3 z-20">
-        <a href="../index.html" class="taskbar-button text-gray-300 hover:bg-gray-700/50" title="Volver al inicio">
-            <span class="material-symbols-outlined text-3xl">home</span>
-        </a>
         <button data-section="summary" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-3xl">widgets</span></button>
         <button data-section="tasks" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-3xl">task_alt</span></button>
         <button data-section="projects" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-3xl">folder_special</span></button>

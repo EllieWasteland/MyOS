@@ -25,9 +25,11 @@ const backToListBtn = document.getElementById('back-to-list-btn');
 const backToProjectsBtn = document.getElementById('back-to-projects-btn');
 const backToShoppingBtn = document.getElementById('back-to-shopping-btn');
 const wallpaperBg = document.getElementById('wallpaper-bg');
-
+const detailPlaceholder = document.getElementById('detail-placeholder');
 
 // --- UTILITY & HELPER FUNCTIONS ---
+const isWideScreen = () => window.matchMedia('(min-width: 1024px)').matches;
+
 function saveData() {
     saveUnifiedData(appState);
 }
@@ -184,6 +186,20 @@ function createTaskCard(item, index, sectionKey, projectIndex = null) {
 }
 
 // --- PANEL MANAGEMENT & UI STATE ---
+function showDetailPanel(panelToShow) {
+    detailPlaceholder.classList.add('hidden');
+    [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
+        p.classList.toggle('translate-x-full', p !== panelToShow);
+    });
+}
+
+function hideAllDetailPanels() {
+    detailPlaceholder.classList.remove('hidden');
+    [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
+        p.classList.add('translate-x-full');
+    });
+}
+
 function showSection(sectionKey) {
     closeProjectDetailPanel();
     closeTaskDetailPanel();
@@ -191,8 +207,7 @@ function showSection(sectionKey) {
     collapseTaskForm();
 
     currentSection = sectionKey;
-    const allSections = appContent.querySelectorAll(':scope > div');
-    allSections.forEach(s => s.classList.add('hidden'));
+    Object.values(sections).forEach(s => s.classList.add('hidden'));
     sections[sectionKey].classList.remove('hidden');
     renderAll();
 }
@@ -207,16 +222,24 @@ function openTaskDetailPanel(task, taskIndex, sectionKey, projectIndex = null) {
     colorPickerContainer.querySelectorAll('[data-color-value]').forEach(el => { el.classList.toggle('color-picker-selected', el.dataset.colorValue === currentlyEditing.task.color); });
     renderEditSubtasks();
     renderEditImages();
-    taskDetailPanel.classList.remove('translate-x-full');
-    if (projectIndex !== null) { projectDetailPanel.classList.add('opacity-0', 'pointer-events-none'); } 
-    else { appContent.classList.add('-translate-x-full', 'opacity-0', 'pointer-events-none'); }
+
+    if(isWideScreen()) {
+        showDetailPanel(taskDetailPanel);
+    } else {
+        taskDetailPanel.classList.remove('translate-x-full');
+        if (projectIndex !== null) { projectDetailPanel.classList.add('opacity-0', 'pointer-events-none'); } 
+        else { appContent.classList.add('-translate-x-full'); }
+    }
 }
 
 function closeTaskDetailPanel() {
-    if (taskDetailPanel.classList.contains('translate-x-full')) return;
-    taskDetailPanel.classList.add('translate-x-full');
-    if (currentlyEditing.projectIndex !== null) { projectDetailPanel.classList.remove('opacity-0', 'pointer-events-none');} 
-    else { appContent.classList.remove('-translate-x-full', 'opacity-0', 'pointer-events-none'); }
+    if (isWideScreen()) {
+        hideAllDetailPanels();
+    } else {
+        taskDetailPanel.classList.add('translate-x-full');
+        if (currentlyEditing.projectIndex !== null) { projectDetailPanel.classList.remove('opacity-0', 'pointer-events-none');} 
+        else { appContent.classList.remove('-translate-x-full'); }
+    }
     currentlyEditing = { taskIndex: null, sectionKey: null, projectIndex: null, task: null };
 }
 
@@ -244,16 +267,25 @@ function openProjectDetailPanel(index) {
     document.getElementById('project-detail-title').textContent = project.name;
     document.getElementById('project-detail-description').textContent = project.description;
     renderProjectTasks();
-    appContent.classList.add('-translate-x-full');
-    projectDetailPanel.classList.remove('translate-x-full');
+    
+    if (isWideScreen()) {
+        showDetailPanel(projectDetailPanel);
+    } else {
+        appContent.classList.add('-translate-x-full');
+        projectDetailPanel.classList.remove('translate-x-full');
+    }
     updateTaskInputVisibility();
 }
 
 function closeProjectDetailPanel() {
-    if (currentProjectIndex === null) return;
+    if (isWideScreen()) {
+        hideAllDetailPanels();
+    } else {
+        if (currentProjectIndex === null) return;
+        appContent.classList.remove('-translate-x-full');
+        projectDetailPanel.classList.add('translate-x-full');
+    }
     currentProjectIndex = null;
-    appContent.classList.remove('-translate-x-full');
-    projectDetailPanel.classList.add('translate-x-full');
     updateTaskInputVisibility();
 }
 
@@ -277,16 +309,25 @@ function openShoppingDetailPanel(index) {
     const list = appState.myTime.shopping[index];
     document.getElementById('shopping-detail-title').textContent = list.title;
     renderShoppingItems();
-    appContent.classList.add('-translate-x-full');
-    shoppingDetailPanel.classList.remove('translate-x-full');
+
+    if(isWideScreen()) {
+        showDetailPanel(shoppingDetailPanel);
+    } else {
+        appContent.classList.add('-translate-x-full');
+        shoppingDetailPanel.classList.remove('translate-x-full');
+    }
     updateTaskInputVisibility();
 }
 
 function closeShoppingDetailPanel() {
-    if (currentShoppingIndex === null) return;
+    if (isWideScreen()) {
+        hideAllDetailPanels();
+    } else {
+        if (currentShoppingIndex === null) return;
+        appContent.classList.remove('-translate-x-full');
+        shoppingDetailPanel.classList.add('translate-x-full');
+    }
     currentShoppingIndex = null;
-    appContent.classList.remove('-translate-x-full');
-    shoppingDetailPanel.classList.add('translate-x-full');
     updateTaskInputVisibility();
     renderList('shopping'); 
 }
@@ -348,7 +389,7 @@ function handleListClick(e) {
 
     if (action === 'view') { openTaskDetailPanel(itemSource[index], index, sectionKey, projectIndex); } 
     else if (action === 'toggle') { itemSource[index].completed = !itemSource[index].completed; } 
-    else if (action === 'delete') { itemSource.splice(index, 1); } 
+    else if (action === 'delete') { itemSource.splice(index, 1); hideAllDetailPanels(); } 
     else if (action === 'view-project') { openProjectDetailPanel(index); return; } 
     else if (action === 'view-shopping-list') { openShoppingDetailPanel(index); return; }
     else { return; }
@@ -369,6 +410,13 @@ function setupEventListeners() {
     backToShoppingBtn.addEventListener('click', closeShoppingDetailPanel);
     setupEditPanelInteractivity();
     setupShoppingPanelInteractivity();
+    
+    window.addEventListener('resize', () => {
+        // Reset transforms if resizing from mobile to desktop to avoid visual glitches
+        if (isWideScreen()) {
+            appContent.classList.remove('-translate-x-full');
+        }
+    });
 }
 
 function setupAddTaskForm() {
@@ -611,5 +659,3 @@ function initializeApp() {
 }
 
 initializeApp();
-
-
