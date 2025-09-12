@@ -17,18 +17,22 @@ const sections = { summary: document.getElementById('summary-section'), tasks: d
 const lists = { tasks: document.getElementById('tasks-list'), projects: document.getElementById('projects-list'), shopping: document.getElementById('shopping-list') };
 const dockButtons = document.querySelectorAll('.taskbar-button');
 const addTaskContainer = document.getElementById('add-task-container');
-const appContent = document.getElementById('app-content');
+const wallpaperBg = document.getElementById('wallpaper-bg');
+
+// New Layout Elements
+const listPane = document.getElementById('list-pane');
+const detailPane = document.getElementById('detail-pane');
+const detailPlaceholder = document.getElementById('detail-placeholder');
 const taskDetailPanel = document.getElementById('task-detail-panel');
 const projectDetailPanel = document.getElementById('project-detail-panel');
 const shoppingDetailPanel = document.getElementById('shopping-detail-panel');
+
 const backToListBtn = document.getElementById('back-to-list-btn');
 const backToProjectsBtn = document.getElementById('back-to-projects-btn');
 const backToShoppingBtn = document.getElementById('back-to-shopping-btn');
-const wallpaperBg = document.getElementById('wallpaper-bg');
-const detailPlaceholder = document.getElementById('detail-placeholder');
 
 // --- UTILITY & HELPER FUNCTIONS ---
-const isWideScreen = () => window.matchMedia('(min-width: 1024px)').matches;
+const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 
 function saveData() {
     saveUnifiedData(appState);
@@ -186,31 +190,60 @@ function createTaskCard(item, index, sectionKey, projectIndex = null) {
 }
 
 // --- PANEL MANAGEMENT & UI STATE ---
-function showDetailPanel(panelToShow) {
-    detailPlaceholder.classList.add('hidden');
-    [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
-        p.classList.toggle('translate-x-full', p !== panelToShow);
-    });
-}
-
-function hideAllDetailPanels() {
-    detailPlaceholder.classList.remove('hidden');
-    [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
-        p.classList.add('translate-x-full');
-    });
-}
-
 function showSection(sectionKey) {
-    closeProjectDetailPanel();
-    closeTaskDetailPanel();
-    closeShoppingDetailPanel();
+    // Reset detail view
+    if (isDesktop()) {
+        closeActiveDetailPanel({ shouldSave: false });
+    } else {
+        detailPane.classList.add('translate-x-full');
+    }
     collapseTaskForm();
 
     currentSection = sectionKey;
-    Object.values(sections).forEach(s => s.classList.add('hidden'));
+    const allSections = document.getElementById('app-content').querySelectorAll(':scope > div');
+    allSections.forEach(s => s.classList.add('hidden'));
     sections[sectionKey].classList.remove('hidden');
     renderAll();
 }
+
+function openDetailView(panelToShow) {
+    detailPlaceholder.classList.add('hidden');
+    [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
+        p.classList.toggle('hidden', p !== panelToShow);
+        p.classList.toggle('flex', p === panelToShow);
+    });
+
+    if (!isDesktop()) {
+        detailPane.classList.remove('translate-x-full');
+    }
+}
+
+function closeActiveDetailPanel({shouldSave = true} = {}) {
+    if (shouldSave) {
+        saveTaskDetails();
+    }
+
+    if (!isDesktop()) {
+        detailPane.classList.add('translate-x-full');
+    }
+    
+    // For both mobile and desktop, hide all panels and show placeholder
+    taskDetailPanel.classList.add('hidden');
+    projectDetailPanel.classList.add('hidden');
+    shoppingDetailPanel.classList.add('hidden');
+    detailPlaceholder.classList.remove('hidden');
+    detailPlaceholder.classList.add('flex');
+
+
+    // Reset tracking variables
+    currentlyEditing = { taskIndex: null, sectionKey: null, projectIndex: null, task: null };
+    currentProjectIndex = null;
+    currentShoppingIndex = null;
+    
+    renderAll(); 
+    updateTaskInputVisibility();
+}
+
 
 function openTaskDetailPanel(task, taskIndex, sectionKey, projectIndex = null) {
     currentlyEditing = { taskIndex, sectionKey, projectIndex, task: JSON.parse(JSON.stringify(task)) };
@@ -222,25 +255,7 @@ function openTaskDetailPanel(task, taskIndex, sectionKey, projectIndex = null) {
     colorPickerContainer.querySelectorAll('[data-color-value]').forEach(el => { el.classList.toggle('color-picker-selected', el.dataset.colorValue === currentlyEditing.task.color); });
     renderEditSubtasks();
     renderEditImages();
-
-    if(isWideScreen()) {
-        showDetailPanel(taskDetailPanel);
-    } else {
-        taskDetailPanel.classList.remove('translate-x-full');
-        if (projectIndex !== null) { projectDetailPanel.classList.add('opacity-0', 'pointer-events-none'); } 
-        else { appContent.classList.add('-translate-x-full'); }
-    }
-}
-
-function closeTaskDetailPanel() {
-    if (isWideScreen()) {
-        hideAllDetailPanels();
-    } else {
-        taskDetailPanel.classList.add('translate-x-full');
-        if (currentlyEditing.projectIndex !== null) { projectDetailPanel.classList.remove('opacity-0', 'pointer-events-none');} 
-        else { appContent.classList.remove('-translate-x-full'); }
-    }
-    currentlyEditing = { taskIndex: null, sectionKey: null, projectIndex: null, task: null };
+    openDetailView(taskDetailPanel);
 }
 
 function saveTaskDetails() {
@@ -252,11 +267,8 @@ function saveTaskDetails() {
     currentlyEditing.task.color = selectedColor ? selectedColor.dataset.colorValue : null;
     if (currentlyEditing.projectIndex !== null) {
         appState.myTime.projects[currentlyEditing.projectIndex].tasks[currentlyEditing.taskIndex] = currentlyEditing.task;
-        renderProjectTasks();
-        renderList('projects'); 
-    } else {
+    } else if (currentlyEditing.sectionKey) {
         appState.myTime[currentlyEditing.sectionKey][currentlyEditing.taskIndex] = currentlyEditing.task;
-        renderList(currentlyEditing.sectionKey);
     }
     saveData();
 }
@@ -267,25 +279,7 @@ function openProjectDetailPanel(index) {
     document.getElementById('project-detail-title').textContent = project.name;
     document.getElementById('project-detail-description').textContent = project.description;
     renderProjectTasks();
-    
-    if (isWideScreen()) {
-        showDetailPanel(projectDetailPanel);
-    } else {
-        appContent.classList.add('-translate-x-full');
-        projectDetailPanel.classList.remove('translate-x-full');
-    }
-    updateTaskInputVisibility();
-}
-
-function closeProjectDetailPanel() {
-    if (isWideScreen()) {
-        hideAllDetailPanels();
-    } else {
-        if (currentProjectIndex === null) return;
-        appContent.classList.remove('-translate-x-full');
-        projectDetailPanel.classList.add('translate-x-full');
-    }
-    currentProjectIndex = null;
+    openDetailView(projectDetailPanel);
     updateTaskInputVisibility();
 }
 
@@ -309,27 +303,8 @@ function openShoppingDetailPanel(index) {
     const list = appState.myTime.shopping[index];
     document.getElementById('shopping-detail-title').textContent = list.title;
     renderShoppingItems();
-
-    if(isWideScreen()) {
-        showDetailPanel(shoppingDetailPanel);
-    } else {
-        appContent.classList.add('-translate-x-full');
-        shoppingDetailPanel.classList.remove('translate-x-full');
-    }
+    openDetailView(shoppingDetailPanel);
     updateTaskInputVisibility();
-}
-
-function closeShoppingDetailPanel() {
-    if (isWideScreen()) {
-        hideAllDetailPanels();
-    } else {
-        if (currentShoppingIndex === null) return;
-        appContent.classList.remove('-translate-x-full');
-        shoppingDetailPanel.classList.add('translate-x-full');
-    }
-    currentShoppingIndex = null;
-    updateTaskInputVisibility();
-    renderList('shopping'); 
 }
 
 function renderShoppingItems() {
@@ -389,7 +364,7 @@ function handleListClick(e) {
 
     if (action === 'view') { openTaskDetailPanel(itemSource[index], index, sectionKey, projectIndex); } 
     else if (action === 'toggle') { itemSource[index].completed = !itemSource[index].completed; } 
-    else if (action === 'delete') { itemSource.splice(index, 1); hideAllDetailPanels(); } 
+    else if (action === 'delete') { itemSource.splice(index, 1); } 
     else if (action === 'view-project') { openProjectDetailPanel(index); return; } 
     else if (action === 'view-shopping-list') { openShoppingDetailPanel(index); return; }
     else { return; }
@@ -405,18 +380,15 @@ function setupEventListeners() {
     Object.values(lists).forEach(list => list.addEventListener('click', handleListClick));
     document.getElementById('project-tasks-list').addEventListener('click', handleListClick);
     setupAddTaskForm();
-    backToListBtn.addEventListener('click', () => { saveTaskDetails(); closeTaskDetailPanel(); });
-    backToProjectsBtn.addEventListener('click', closeProjectDetailPanel);
-    backToShoppingBtn.addEventListener('click', closeShoppingDetailPanel);
+    
+    backToListBtn.addEventListener('click', closeActiveDetailPanel);
+    backToProjectsBtn.addEventListener('click', closeActiveDetailPanel);
+    backToShoppingBtn.addEventListener('click', closeActiveDetailPanel);
+
     setupEditPanelInteractivity();
     setupShoppingPanelInteractivity();
     
-    window.addEventListener('resize', () => {
-        // Reset transforms if resizing from mobile to desktop to avoid visual glitches
-        if (isWideScreen()) {
-            appContent.classList.remove('-translate-x-full');
-        }
-    });
+    window.addEventListener('resize', () => showSection(currentSection));
 }
 
 function setupAddTaskForm() {
@@ -455,7 +427,6 @@ function setupAddTaskForm() {
         collapseTaskForm();
     });
 
-    // Event listeners for color picker, date, etc. in the add form
     document.getElementById('color-picker').addEventListener('click', (e) => {
         const colorDiv = e.target.closest('[data-color-value]');
         if(colorDiv) {
@@ -646,13 +617,9 @@ function applyWallpaper(imageBase64) {
 function initializeApp() {
     appState = getUnifiedData();
     
-    // Apply saved wallpaper on startup
     if (appState.myTime.wallpaper) {
         applyWallpaper(appState.myTime.wallpaper);
     }
-
-    // Since the color is static, we don't need to apply it from JS.
-    // The theme color is now defined and controlled only by styles.css
 
     setupEventListeners();
     showSection('summary');
