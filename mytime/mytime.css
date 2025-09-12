@@ -1,7 +1,7 @@
 :root {
-    --primary-color: #F97316;
+    --primary-color: #F97116;
     --primary-color-rgb: 249, 115, 22;
-    --primary-gradient: linear-gradient(145deg, #F97316, #EA580C);
+    --primary-gradient: linear-gradient(145deg, #F97116, #EA580C);
     --panel-color: #1a1a1d;
     --panel-color-darker: #121212;
 }
@@ -16,24 +16,29 @@ body {
 }
 .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24; }
 
-/* Main container: No rounded corners on mobile */
+/* Main container: Base styles for Desktop */
 .main-container {
     background-color: rgba(30, 30, 30, 0.85);
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-    border-radius: 0; /* No radius on mobile */
+    border-radius: 1.25rem; /* Desktop default */
 }
 
-/* Desktop view adjustments to fill available space and add radius */
-@media (min-width: 768px) { /* md breakpoint and up */
-    /* This will make the container take the full width/height inside its parent, overriding Tailwind classes.
-       The parent div has md:p-4, so this creates a full-window effect with a margin. */
+/* Desktop view adjustments to fill available space */
+@media (min-width: 768px) {
     .main-container {
-        max-width: 100%;
+        /* This !important rule forces the container to take up all available space, overriding Tailwind's max-w-5xl class. */
+        max-width: 100% !important;
         height: 100%;
-        border-radius: 1.25rem; /* Add radius back for desktop */
+    }
+}
+
+/* Mobile override: remove border radius */
+@media (max-width: 767px) {
+    .main-container {
+        border-radius: 0;
     }
 }
 
@@ -52,27 +57,29 @@ body {
 ::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb { background: #4B5563; border-radius: 10px; }
 
-/* Taskbar: Bar with rounded TOP corners on mobile, pill on desktop */
+/* Taskbar: Desktop-first approach (pill shape) */
 .taskbar {
     background-color: rgba(30, 30, 30, 0.7);
     backdrop-filter: blur(15px);
     -webkit-backdrop-filter: blur(15px);
-    /* We need left and right borders for the rounded effect to look continuous */
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    border-left: 1px solid rgba(255, 255, 255, 0.1);
-    border-right: 1px solid rgba(255, 255, 255, 0.1);
-    padding-bottom: env(safe-area-inset-bottom); /* For iPhone safe area */
-    /* Rounded top corners for mobile */
-    border-top-left-radius: 1.25rem; /* 20px */
-    border-top-right-radius: 1.25rem; /* 20px */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px; /* This is the desktop/pill style */
 }
-@media (min-width: 640px) { /* sm breakpoint */
+
+/* Mobile override for taskbar (bar with rounded top corners) */
+@media (max-width: 639px) {
     .taskbar {
-        /* Revert to pill shape on desktop */
-        border-radius: 9999px;
-        border: 1px solid rgba(255, 255, 255, 0.1); /* A single border rule is cleaner */
+        border-radius: 0; /* Reset pill shape */
+        border-top-left-radius: 1.25rem;
+        border-top-right-radius: 1.25rem;
+        border-left: 1px solid rgba(255, 255, 255, 0.1);
+        border-right: 1px solid rgba(255, 255, 255, 0.1);
+        border-top: 1px solid rgba(255, 255, 255, 0.1);
+        border-bottom: none; /* No bottom border needed for this view */
+        padding-bottom: env(safe-area-inset-bottom);
     }
 }
+
 
 .taskbar-button {
     width: 48px; height: 48px; border-radius: 50%;
