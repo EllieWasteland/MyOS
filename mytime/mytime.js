@@ -34,8 +34,8 @@ const backToShoppingBtn = document.getElementById('back-to-shopping-btn');
 // --- UTILITY & HELPER FUNCTIONS ---
 const isDesktop = () => window.matchMedia('(min-width: 1024px)').matches;
 
-function saveData() {
-    saveUnifiedData(appState);
+async function saveData() {
+    await saveUnifiedData(appState);
 }
 
 function formatTimeRemaining(deadline) {
@@ -190,10 +190,10 @@ function createTaskCard(item, index, sectionKey, projectIndex = null) {
 }
 
 // --- PANEL MANAGEMENT & UI STATE ---
-function showSection(sectionKey) {
+async function showSection(sectionKey) {
     // Reset detail view
     if (isDesktop()) {
-        closeActiveDetailPanel({ shouldSave: false });
+        await closeActiveDetailPanel({ shouldSave: false });
     } else {
         detailPane.classList.add('translate-x-full');
     }
@@ -218,24 +218,21 @@ function openDetailView(panelToShow) {
     }
 }
 
-function closeActiveDetailPanel({shouldSave = true} = {}) {
+async function closeActiveDetailPanel({shouldSave = true} = {}) {
     if (shouldSave) {
-        saveTaskDetails();
+        await saveTaskDetails();
     }
 
     if (!isDesktop()) {
         detailPane.classList.add('translate-x-full');
     }
     
-    // For both mobile and desktop, hide all panels and show placeholder
     taskDetailPanel.classList.add('hidden');
     projectDetailPanel.classList.add('hidden');
     shoppingDetailPanel.classList.add('hidden');
     detailPlaceholder.classList.remove('hidden');
     detailPlaceholder.classList.add('flex');
 
-
-    // Reset tracking variables
     currentlyEditing = { taskIndex: null, sectionKey: null, projectIndex: null, task: null };
     currentProjectIndex = null;
     currentShoppingIndex = null;
@@ -258,7 +255,7 @@ function openTaskDetailPanel(task, taskIndex, sectionKey, projectIndex = null) {
     openDetailView(taskDetailPanel);
 }
 
-function saveTaskDetails() {
+async function saveTaskDetails() {
     if (currentlyEditing.taskIndex === null) return;
     currentlyEditing.task.text = document.getElementById('edit-task-name').value;
     currentlyEditing.task.description = document.getElementById('edit-task-description').value;
@@ -270,7 +267,7 @@ function saveTaskDetails() {
     } else if (currentlyEditing.sectionKey) {
         appState.myTime[currentlyEditing.sectionKey][currentlyEditing.taskIndex] = currentlyEditing.task;
     }
-    saveData();
+    await saveData();
 }
 
 function openProjectDetailPanel(index) {
@@ -349,7 +346,7 @@ function updateShoppingTotal() {
 }
 
 // --- EVENT LISTENERS & SETUP ---
-function handleListClick(e) {
+async function handleListClick(e) {
     const target = e.target.closest('[data-action]');
     if (!target) return;
 
@@ -369,7 +366,7 @@ function handleListClick(e) {
     else if (action === 'view-shopping-list') { openShoppingDetailPanel(index); return; }
     else { return; }
 
-    saveData();
+    await saveData();
     if (projectIndex !== null) { renderProjectTasks(); renderList('projects'); } 
     else { renderList(sectionKey); }
     renderSummary();
@@ -381,9 +378,9 @@ function setupEventListeners() {
     document.getElementById('project-tasks-list').addEventListener('click', handleListClick);
     setupAddTaskForm();
     
-    backToListBtn.addEventListener('click', closeActiveDetailPanel);
-    backToProjectsBtn.addEventListener('click', closeActiveDetailPanel);
-    backToShoppingBtn.addEventListener('click', closeActiveDetailPanel);
+    backToListBtn.addEventListener('click', () => closeActiveDetailPanel());
+    backToProjectsBtn.addEventListener('click', () => closeActiveDetailPanel());
+    backToShoppingBtn.addEventListener('click', () => closeActiveDetailPanel());
 
     setupEditPanelInteractivity();
     setupShoppingPanelInteractivity();
@@ -399,7 +396,7 @@ function setupAddTaskForm() {
     taskNameInput.addEventListener('focus', () => addTaskContainer.classList.add('expanded'));
     cancelBtn.addEventListener('click', collapseTaskForm);
 
-    addTaskForm.addEventListener('submit', (e) => {
+    addTaskForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const text = taskNameInput.value.trim();
         if (!text) return;
@@ -421,7 +418,7 @@ function setupAddTaskForm() {
             const task = { text, description: document.getElementById('task-description-input').value.trim(), dueDate: document.getElementById('task-due-date').value, color: newSelectedColor, images: newImageBase64Strings, subtasks: newSubtasks, completed: false, id: Date.now() };
             appState.myTime.tasks.push(task);
         }
-        saveData();
+        await saveData();
         if (currentProjectIndex === null) renderList(currentSection);
         renderSummary();
         collapseTaskForm();
@@ -472,8 +469,8 @@ function collapseTaskForm() {
     document.querySelectorAll('#color-picker .color-picker-selected').forEach(el => el.classList.remove('color-picker-selected'));
 }
 
-function setupShoppingPanelInteractivity() {
-    document.getElementById('add-shopping-item-form').addEventListener('submit', (e) => {
+async function setupShoppingPanelInteractivity() {
+    document.getElementById('add-shopping-item-form').addEventListener('submit', async (e) => {
         e.preventDefault();
         if (currentShoppingIndex === null) return;
 
@@ -485,7 +482,7 @@ function setupShoppingPanelInteractivity() {
         if(name && !isNaN(price) && price >= 0) {
             if(!appState.myTime.shopping[currentShoppingIndex].items) appState.myTime.shopping[currentShoppingIndex].items = [];
             appState.myTime.shopping[currentShoppingIndex].items.push({ name, price, quantity: 1, purchased: false });
-            saveData();
+            await saveData();
             renderShoppingItems();
             renderList('shopping');
             nameInput.value = '';
@@ -494,7 +491,7 @@ function setupShoppingPanelInteractivity() {
         }
     });
 
-    document.getElementById('shopping-items-list').addEventListener('click', (e) => {
+    document.getElementById('shopping-items-list').addEventListener('click', async (e) => {
         const button = e.target.closest('button[data-action]');
         if(!button) return;
         const index = parseInt(button.dataset.itemIndex);
@@ -507,19 +504,19 @@ function setupShoppingPanelInteractivity() {
         else if (action === 'toggle-purchase') { items[index].purchased = !items[index].purchased; }
         else { return; }
         
-        saveData();
+        await saveData();
         renderShoppingItems();
         renderList('shopping');
     });
     
-     document.getElementById('shopping-items-list').addEventListener('change', (e) => {
+     document.getElementById('shopping-items-list').addEventListener('change', async (e) => {
         const input = e.target.closest('input[data-action="set-qty"]');
         if(!input) return;
         const index = parseInt(input.dataset.itemIndex);
         let newQty = parseInt(input.value);
         if(isNaN(newQty) || newQty < 1) newQty = 1;
         appState.myTime.shopping[currentShoppingIndex].items[index].quantity = newQty;
-        saveData();
+        await saveData();
         renderShoppingItems();
         renderList('shopping');
      });
@@ -614,8 +611,8 @@ function applyWallpaper(imageBase64) {
 }
 
 // --- INITIALIZATION ---
-function initializeApp() {
-    appState = getUnifiedData();
+async function initializeApp() {
+    appState = await getUnifiedData();
     
     if (appState.myTime.wallpaper) {
         applyWallpaper(appState.myTime.wallpaper);
