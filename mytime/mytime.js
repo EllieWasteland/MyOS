@@ -18,6 +18,12 @@ const lists = { tasks: document.getElementById('tasks-list'), projects: document
 const dockButtons = document.querySelectorAll('.taskbar-button');
 const addTaskContainer = document.getElementById('add-task-container');
 const wallpaperBg = document.getElementById('wallpaper-bg');
+const taskbar = document.querySelector('.taskbar'); // Elemento del menú de navegación
+
+// Modal elements
+const imageModal = document.getElementById('image-modal');
+const modalImageContent = document.getElementById('modal-image-content');
+const closeImageModalBtn = document.getElementById('close-image-modal');
 
 // New Layout Elements
 const listPane = document.getElementById('list-pane');
@@ -207,6 +213,7 @@ async function showSection(sectionKey) {
 }
 
 function openDetailView(panelToShow) {
+    taskbar.classList.add('hidden'); // Oculta el menú flotante
     detailPlaceholder.classList.add('hidden');
     [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
         p.classList.toggle('hidden', p !== panelToShow);
@@ -219,6 +226,10 @@ function openDetailView(panelToShow) {
 }
 
 async function closeActiveDetailPanel({shouldSave = true} = {}) {
+    taskbar.classList.remove('hidden'); // Muestra el menú flotante
+    // MEJORA: Mueve el contenedor de añadir tarea de vuelta al panel de lista principal
+    listPane.appendChild(addTaskContainer);
+
     if (shouldSave) {
         await saveTaskDetails();
     }
@@ -276,6 +287,10 @@ function openProjectDetailPanel(index) {
     document.getElementById('project-detail-title').textContent = project.name;
     document.getElementById('project-detail-description').textContent = project.description;
     renderProjectTasks();
+    
+    // MEJORA: Mueve el contenedor del formulario al panel de detalles del proyecto
+    projectDetailPanel.appendChild(addTaskContainer);
+
     openDetailView(projectDetailPanel);
     updateTaskInputVisibility();
 }
@@ -345,6 +360,19 @@ function updateShoppingTotal() {
     document.getElementById('shopping-list-total').textContent = `$${total.toFixed(2)}`;
 }
 
+// --- MODAL FUNCTIONS ---
+function openImageModal(src) {
+    modalImageContent.src = src;
+    imageModal.classList.remove('hidden');
+    imageModal.classList.add('flex');
+}
+
+function closeImageModal() {
+    imageModal.classList.add('hidden');
+    imageModal.classList.remove('flex');
+    modalImageContent.src = ''; // Clear src to prevent showing old image briefly
+}
+
 // --- EVENT LISTENERS & SETUP ---
 async function handleListClick(e) {
     const target = e.target.closest('[data-action]');
@@ -385,7 +413,19 @@ function setupEventListeners() {
     setupEditPanelInteractivity();
     setupShoppingPanelInteractivity();
     
-    window.addEventListener('resize', () => showSection(currentSection));
+    // Modal listeners
+    closeImageModalBtn.addEventListener('click', closeImageModal);
+    imageModal.addEventListener('click', (e) => {
+        if (e.target === imageModal) closeImageModal();
+    });
+
+    window.addEventListener('resize', () => {
+        // Al cambiar el tamaño, si cerramos el panel de detalles, el formulario debe volver a su sitio
+        if (!isDesktop() && detailPane.classList.contains('translate-x-full')) {
+             listPane.appendChild(addTaskContainer);
+        }
+        showSection(currentSection);
+    });
 }
 
 function setupAddTaskForm() {
@@ -525,7 +565,7 @@ async function setupShoppingPanelInteractivity() {
 function updateTaskInputVisibility() {
     const isProjectDetailView = currentProjectIndex !== null;
     const isShoppingDetailView = currentShoppingIndex !== null;
-    const isMainListView = ['tasks', 'projects', 'shopping'].includes(currentSection) && !isShoppingDetailView;
+    const isMainListView = ['tasks', 'projects', 'shopping'].includes(currentSection) && !isShoppingDetailView && !isProjectDetailView;
     
     const shouldBeVisible = isMainListView || isProjectDetailView;
     addTaskContainer.classList.toggle('hidden', !shouldBeVisible);
@@ -575,7 +615,13 @@ function renderEditSubtasks() {
 function renderEditImages() {
      const container = document.getElementById('edit-image-previews');
      if(!currentlyEditing.task.images) currentlyEditing.task.images = [];
-     container.innerHTML = currentlyEditing.task.images.map((img, index) => `<div class="relative"><img src="${img}" class="w-20 h-20 object-cover rounded-lg"><button data-img-index="${index}" data-action="delete-edit-image" class="absolute top-0 right-0 bg-red-600/80 rounded-full text-white p-0.5 transform translate-x-1/2 -translate-y-1/2"><span class="material-symbols-outlined !text-sm">close</span></button></div>`).join('');
+     container.innerHTML = currentlyEditing.task.images.map((img, index) => `
+        <div class="relative">
+            <img src="${img}" class="w-20 h-20 object-cover rounded-lg cursor-pointer hover:opacity-80 transition-opacity" data-action="view-image">
+            <button data-img-index="${index}" data-action="delete-edit-image" class="absolute top-0 right-0 bg-red-600/80 rounded-full text-white p-0.5 transform translate-x-1/2 -translate-y-1/2">
+                <span class="material-symbols-outlined !text-sm">close</span>
+            </button>
+        </div>`).join('');
 }
 
  function setupEditPanelInteractivity() {
@@ -585,7 +631,18 @@ function renderEditImages() {
     document.getElementById('edit-subtasks-container').addEventListener('click', (e) => { const button = e.target.closest('button[data-action]'); if (!button) return; const index = button.dataset.subIndex; if (button.dataset.action === 'toggle-edit-subtask') { currentlyEditing.task.subtasks[index].completed = !currentlyEditing.task.subtasks[index].completed; } else if (button.dataset.action === 'delete-edit-subtask') { currentlyEditing.task.subtasks.splice(index, 1); } renderEditSubtasks(); });
     document.getElementById('edit-add-photo-btn').addEventListener('click', () => document.getElementById('edit-image-file-input').click());
     document.getElementById('edit-image-file-input').addEventListener('change', (e) => { Array.from(e.target.files).forEach(file => { const reader = new FileReader(); reader.onload = (event) => { if (!currentlyEditing.task.images) currentlyEditing.task.images = []; currentlyEditing.task.images.push(event.target.result); renderEditImages(); }; reader.readAsDataURL(file); }); e.target.value = ''; });
-    document.getElementById('edit-image-previews').addEventListener('click', (e) => { const button = e.target.closest('button[data-action="delete-edit-image"]'); if (button) { currentlyEditing.task.images.splice(button.dataset.imgIndex, 1); renderEditImages(); } });
+    
+    document.getElementById('edit-image-previews').addEventListener('click', (e) => {
+        const target = e.target.closest('[data-action]');
+        if (!target) return;
+        if (target.dataset.action === 'delete-edit-image') {
+            currentlyEditing.task.images.splice(target.dataset.imgIndex, 1);
+            renderEditImages();
+        } else if (target.dataset.action === 'view-image') {
+            openImageModal(target.src);
+        }
+    });
+
     document.getElementById('edit-color-picker').addEventListener('click', (e) => { const colorDiv = e.target.closest('[data-color-value]'); if (colorDiv) { document.getElementById('edit-color-picker').querySelectorAll('.color-picker-selected').forEach(el => el.classList.remove('color-picker-selected')); colorDiv.classList.add('color-picker-selected'); } });
 }
 
@@ -623,3 +680,4 @@ async function initializeApp() {
 }
 
 initializeApp();
+
