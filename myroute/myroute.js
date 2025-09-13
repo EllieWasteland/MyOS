@@ -38,6 +38,10 @@ document.addEventListener('DOMContentLoaded', () => {
         recenterBtn: getEl('recenter-btn'),
         preloadMapBtn: getEl('preload-map-btn'),
         preloadOverlay: getEl('preload-overlay'),
+        // Nuevos elementos para la API Key
+        apiKeyModal: getEl('api-key-modal'),
+        apiKeyInput: getEl('api-key-input'),
+        saveApiKeyBtn: getEl('save-api-key-btn'),
     };
 
     // --- Estado Global de la Aplicación ---
@@ -142,15 +146,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Módulo de Lógica del Mapa ---
     const mapLogic = {
-        initialize: async () => {
+        initialize: async (apiKey) => {
             try {
-                const response = await fetch('/.netlify/functions/get-map-key');
-                if (!response.ok) throw new Error(`Error al contactar el servidor de claves: ${response.statusText}`);
-                
-                const config = await response.json();
-                if (!config.apiKey) throw new Error("La clave de API no fue recibida del servidor.");
+                if (!apiKey) {
+                    throw new Error("La clave de API de MapTiler es necesaria para mostrar el mapa.");
+                }
 
-                const styleUrl = `https://api.maptiler.com/maps/streets-v2/style.json?key=${config.apiKey}`;
+                const styleUrl = `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`;
                 
                 appState.map = new maplibregl.Map({
                     container: 'map',
@@ -168,9 +170,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const data = await getUnifiedData();
                     ui.applyTheme(data.myRoute.settings.mapStyle);
                 });
-
-                appState.map.on('dragstart', () => { if(appState.isDynamicCameraActive && !appState.isPreloading) ui.showStatus('Control manual activado', 1500); appState.isDynamicCameraActive = false; });
-                appState.map.on('zoomstart', () => { if(appState.isDynamicCameraActive && !appState.isPreloading) ui.showStatus('Control manual activado', 1500); appState.isDynamicCameraActive = false; });
+                
+                // MEJORA: Se elimina la notificación de "control manual"
+                appState.map.on('dragstart', () => { appState.isDynamicCameraActive = false; });
+                appState.map.on('zoomstart', () => { appState.isDynamicCameraActive = false; });
 
             } catch (error) {
                 console.error("Error crítico al inicializar el mapa:", error);
@@ -486,14 +489,43 @@ document.addEventListener('DOMContentLoaded', () => {
         if (DOMElements.preloadMapBtn) {
             DOMElements.preloadMapBtn.onclick = mapLogic.preloadMapArea;
         }
+
+        // Evento para guardar la API Key
+        DOMElements.saveApiKeyBtn.onclick = async () => {
+            const apiKey = DOMElements.apiKeyInput.value.trim();
+            if (!apiKey) {
+                ui.showStatus('Por favor, introduce una API key válida.');
+                return;
+            }
+    
+            const data = await getUnifiedData();
+            if (!data.myRoute.settings) {
+                data.myRoute.settings = {};
+            }
+            data.myRoute.settings.apiKey = apiKey;
+            await saveUnifiedData(data);
+    
+            ui.toggleModal(DOMElements.apiKeyModal, false);
+            await mapLogic.initialize(apiKey);
+        };
     };
 
     // --- Inicialización ---
     const init = async () => {
         applyResponsiveStyles();
         await ui.initialize();
-        await mapLogic.initialize();
         bindEvents();
+
+        // Verificar si la API key existe
+        const data = await getUnifiedData();
+        const apiKey = data.myRoute.settings.apiKey;
+
+        if (apiKey) {
+            await mapLogic.initialize(apiKey);
+        } else {
+            // Si no hay key, mostrar el modal para solicitarla
+            ui.toggleModal(DOMElements.apiKeyModal, true);
+        }
     };
 
     init();

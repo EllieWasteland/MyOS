@@ -130,6 +130,16 @@
             </div>
         </div>
     </div>
+    
+    <!-- Modal para API Key -->
+    <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-80 z-50 items-center justify-center p-4 hidden">
+        <div class="rounded-2xl p-6 w-full max-w-sm shadow-xl bg-secondary border border-border">
+            <h2 class="text-xl font-bold text-center mb-2">API Key de MapTiler</h2>
+            <p class="text-center mb-4 text-secondary text-sm">Necesitas una API key de MapTiler para usar el mapa. Consíguela gratis en <a href="https://maptiler.com" target="_blank" class="text-white underline">maptiler.com</a>.</p>
+            <input type="text" id="api-key-input" class="w-full border-2 border-transparent rounded-lg p-3 mb-6 outline-none bg-light text-primary focus:ring-2 focus:ring-brand" placeholder="Tu API Key">
+            <button id="save-api-key-btn" class="btn w-full font-bold py-3 px-4 rounded-lg bg-brand text-bg-primary">Guardar y Empezar</button>
+        </div>
+    </div>
 
     <!-- Modal para Guardar Ruta -->
     <div id="save-modal" class="fixed inset-0 bg-black bg-opacity-60 z-40 items-center justify-center p-4 hidden">
