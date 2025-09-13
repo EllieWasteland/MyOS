@@ -220,54 +220,45 @@ export function initTimer() {
         }
     });
 
-    // CORRECCIÓN PARA MÓVILES: Reemplazar clic derecho con "mantener presionado".
+    // CORRECCIÓN BUG MÓVIL: Lógica de interacción con la píldora (Tap y Long Press)
     if (timerPill) {
         let pressTimer = null;
         let isLongPress = false;
 
         const startPress = (e) => {
             if (!clockBtn.dataset.timerActive) return;
-            // Previene acciones por defecto como el menú contextual o el zoom.
             e.preventDefault(); 
-            
             isLongPress = false;
             pressTimer = setTimeout(() => {
                 isLongPress = true;
-                // Acción para "mantener presionado": CANCELAR TEMPORIZADOR
-                stopTimer(false);
+                // Acción para "mantener presionado": PAUSAR/REANUDAR
+                toggleTimerPause();
             }, 500); // 500ms para considerar una pulsación larga
         };
 
-        const cancelPress = () => {
+        const endPress = (e) => {
             clearTimeout(pressTimer);
-        };
-        
-        const clickAction = (e) => {
-            // Si fue una pulsación larga, la acción ya se ejecutó.
-            // Evitamos que la acción de clic (pausar) se ejecute también.
-            if (isLongPress) {
-                e.stopImmediatePropagation();
-                return;
-            }
-            if (clockBtn.dataset.timerActive) {
-                // Acción para clic corto: PAUSAR/REANUDAR
-                toggleTimerPause();
+            // Solo ejecuta la acción de "tap" si no fue una pulsación larga.
+            if (!isLongPress) {
+                if (clockBtn.dataset.timerActive) {
+                    // Acción para "tap": CANCELAR TEMPORIZADOR
+                    stopTimer(false);
+                }
             }
         };
 
-        // Combinar eventos de mouse y táctiles
+        // Asignar los mismos listeners a eventos de mouse y táctiles.
         timerPill.addEventListener('mousedown', startPress);
         timerPill.addEventListener('touchstart', startPress, { passive: false });
 
-        timerPill.addEventListener('mouseup', cancelPress);
-        timerPill.addEventListener('mouseleave', cancelPress);
-        timerPill.addEventListener('touchend', cancelPress);
-        timerPill.addEventListener('touchcancel', cancelPress);
+        timerPill.addEventListener('mouseup', endPress);
+        timerPill.addEventListener('touchend', endPress);
 
-        // El evento de clic se gestiona al final para diferenciarlo de la pulsación larga
-        timerPill.addEventListener('click', clickAction);
+        // Cancelar la pulsación larga si el cursor/dedo se sale del botón.
+        timerPill.addEventListener('mouseleave', () => clearTimeout(pressTimer));
+        timerPill.addEventListener('touchcancel', () => clearTimeout(pressTimer));
 
-        // Desactivamos el menú contextual por defecto para no interferir.
+        // Prevenir el menú contextual para que no interfiera con la pulsación larga.
         timerPill.addEventListener('contextmenu', e => e.preventDefault());
     }
 
