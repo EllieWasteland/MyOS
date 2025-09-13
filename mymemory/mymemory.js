@@ -1,7 +1,6 @@
 // Importa las funciones reales desde el gestor de datos.
-import { getUnifiedData, saveUnifiedData, getDefaultUnifiedState } from '../data-manager.js';
+import { getUnifiedData, saveUnifiedData } from '../data-manager.js';
 
-// Envuelve toda la lógica en un listener que se asegura de que la página esté completamente cargada.
 window.addEventListener('load', () => {
     // --- SELECTORES ---
     const mainView = document.getElementById('main-view');
@@ -45,7 +44,6 @@ window.addEventListener('load', () => {
     const nestedMemoryBtn = document.getElementById('nested-memory-btn');
     const nestedMemoryMenu = document.getElementById('nested-memory-menu');
 
-    // --- CORRECCIÓN DEL BUG GRÁFICO ---
     if (chatFormContainer && mainContainer) {
         mainContainer.appendChild(chatFormContainer);
     }
@@ -65,14 +63,14 @@ window.addEventListener('load', () => {
     const getCurrentMemoryId = () => navigationStack[navigationStack.length - 1];
 
     // --- FUNCIONES DE DATOS ---
-    const saveData = () => {
+    async function saveData() {
         unifiedData.myMemory.memories = memories;
         unifiedData.myMemory.settings = settings;
-        saveUnifiedData(unifiedData);
+        await saveUnifiedData(unifiedData);
     };
     
-    const loadData = () => {
-        unifiedData = getUnifiedData();
+    async function loadData() {
+        unifiedData = await getUnifiedData();
         memories = unifiedData.myMemory.memories || [];
         settings = unifiedData.myMemory.settings || {};
 
@@ -89,7 +87,7 @@ window.addEventListener('load', () => {
         });
 
         if (needsSave) {
-            saveData();
+            await saveData();
         }
     };
 
@@ -134,7 +132,7 @@ window.addEventListener('load', () => {
         cardEl.querySelector('.delete-btn').addEventListener('click', (e) => {
             e.stopPropagation();
             dropdown.classList.remove('visible');
-            showConfirmationModal(`¿Seguro que quieres eliminar el módulo "${memory.title}" y todo su contenido?`, () => {
+            showConfirmationModal(`¿Seguro que quieres eliminar el módulo "${memory.title}" y todo su contenido?`, async () => {
                 let idsToDelete = [memory.id];
                 let queue = [memory.id];
                 while(queue.length > 0) {
@@ -146,7 +144,7 @@ window.addEventListener('load', () => {
                     });
                 }
                 memories = memories.filter(m => !idsToDelete.includes(m.id));
-                saveData();
+                await saveData();
                 renderView();
             });
         });
@@ -195,11 +193,11 @@ window.addEventListener('load', () => {
                 });
 
                 memoryItemsContainer.querySelectorAll('.delete-item-btn').forEach(btn => {
-                    btn.addEventListener('click', (e) => {
+                    btn.addEventListener('click', async (e) => {
                         const itemId = e.currentTarget.dataset.itemId;
                         if (currentMemory) {
                             currentMemory.items = currentMemory.items.filter(i => i.id !== itemId);
-                            saveData();
+                            await saveData();
                             renderView();
                         }
                     });
@@ -362,7 +360,7 @@ window.addEventListener('load', () => {
         showModal(memoryModal);
     };
     
-    const saveMemory = () => {
+    const saveMemory = async () => {
         const id = memoryIdInput.value;
         const title = memoryTitleInputModal.value.trim();
         const description = memoryDescriptionInput.value.trim();
@@ -377,7 +375,7 @@ window.addEventListener('load', () => {
                 parentId: getCurrentMemoryId(), items: [] 
             });
         }
-        saveData();
+        await saveData();
         renderView();
         hideModal(memoryModal);
     };
@@ -393,7 +391,7 @@ window.addEventListener('load', () => {
         const newCancelBtn = cancelBtn.cloneNode(true);
         cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
-        newConfirmBtn.addEventListener('click', () => { onConfirm(); hideModal(confirmationModal); });
+        newConfirmBtn.addEventListener('click', async () => { await onConfirm(); hideModal(confirmationModal); });
         newCancelBtn.addEventListener('click', () => hideModal(confirmationModal));
         showModal(confirmationModal);
     };
@@ -465,7 +463,7 @@ window.addEventListener('load', () => {
     skipBtn.addEventListener('click', saveMemory);
     createBtn.addEventListener('click', saveMemory);
     
-    addItemForm.addEventListener('submit', (e) => {
+    addItemForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const title = itemTitleInput.value.trim();
         const currentId = getCurrentMemoryId();
@@ -475,7 +473,7 @@ window.addEventListener('load', () => {
         if (memory) {
             const newItem = { id: `item-${Date.now()}`, title: title, image: currentImage, timestamp: new Date().toISOString() };
             memory.items.push(newItem);
-            saveData();
+            await saveData();
             
             renderView();
             const newItemEl = memoryItemsContainer.querySelector(`[data-item-id="${newItem.id}"]`);
@@ -515,8 +513,8 @@ window.addEventListener('load', () => {
     });
 
     // --- INICIALIZACIÓN ---
-    const init = () => {
-        loadData();
+    const init = async () => {
+        await loadData();
         applyTheme();
         applyWallpaper();
         mainView.classList.add('active');
