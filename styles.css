@@ -113,7 +113,7 @@ body.theme-indigo {
 #settings-window .bg-black\/10 { background-color: rgba(0,0,0,0.05) !important; }
 
 #start-menu h2, #start-menu button, .popup-transition button, #generic-modal h2, #onboarding-screen h2, #login-screen h2, #settings-window h2, #settings-window h3, #settings-window h4, #settings-window button, #settings-window p, #settings-window span,
-#start-menu p, .popup-transition p, #generic-modal p, #onboarding-screen p, #login-screen p, #window-title, .context-menu-btn {
+#start-menu p, .popup-transition p, #generic-modal p, #onboarding-screen p, #login-screen p, #window-title, .context-menu-btn, #timer-window h3 {
     color: var(--theme-text)
 }
 .context-menu-btn:hover {
@@ -122,13 +122,13 @@ body.theme-indigo {
 
 #start-menu button, #timer-popup button, #timer-widget-controls button,
 .login-step button:not(#google-login-choice-btn):not(#offline-login-choice-btn), #username-submit-btn,
-.onboarding-next-btn, #finish-onboarding-btn {
+.onboarding-next-btn, #finish-onboarding-btn, .timer-preset-btn {
     background-color: rgba(0,0,0, 0.05) !important;
     color: var(--theme-text) !important;
 }
 #start-menu button:hover, #timer-popup button:hover, #timer-widget-controls button:hover,
 .login-step button:hover:not(#google-login-choice-btn):not(#offline-login-choice-btn), #username-submit-btn:hover,
-.onboarding-next-btn:hover, #finish-onboarding-btn:hover {
+.onboarding-next-btn:hover, #finish-onboarding-btn:hover, .timer-preset-btn:hover {
     background-color: rgba(0,0,0, 0.1) !important;
 }
 #generic-modal-buttons button {
@@ -671,5 +671,85 @@ body.window-maximized #google-search-widget-container {
     width: 100%;
 }
 
+/* --- Estilos del nuevo Temporizador y Calendario --- */
+#calendar-grid div {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    aspect-ratio: 1/1;
+    border-radius: 9999px; /* rounded-full */
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+#calendar-grid .day-name {
+    font-weight: 700;
+    opacity: 0.6;
+    font-size: 0.8rem;
+    aspect-ratio: auto;
+    height: 2rem;
+}
+#calendar-grid .day-cell {
+    cursor: default;
+}
+#calendar-grid .day-cell:not(.other-month):hover {
+    background-color: rgba(0,0,0,0.05);
+}
+#calendar-grid .other-month {
+    opacity: 0.3;
+}
+#calendar-grid .today {
+    background-color: var(--theme-text) !important;
+    color: var(--theme-bg) !important;
+}
 
+#close-timer-window-btn svg {
+    color: var(--theme-text);
+}
+#close-timer-window-btn:hover, #calendar-header button:hover {
+     background-color: rgba(0,0,0,0.05);
+}
+#calendar-header button {
+    color: var(--theme-text);
+}
+#month-year-display {
+     color: var(--theme-text);
+}
+
+/* --- Estilos de la Píldora del Temporizador --- */
+.timer-pill-base {
+    position: fixed;
+    bottom: calc(1rem + 60px + 10px); /* 1rem (taskbar bottom) + 60px (taskbar height) + 10px (gap) */
+    right: 1.5rem; /* Alineado a la derecha */
+    z-index: 25; /* Entre el escritorio y la taskbar */
+    transform: translateY(150%); /* Oculto hacia abajo */
+    opacity: 0;
+    pointer-events: none;
+    transition: transform 0.4s cubic-bezier(0.3, 1.3, 0.6, 1), opacity 0.3s ease-out;
+
+    /* Estilos visuales tomados de notification-pill y adaptados */
+    background: var(--theme-bg);
+    color: var(--theme-text);
+    border: 1px solid var(--theme-border);
+    font-weight: 600; /* Un poco más grueso */
+    border-radius: 9999px;
+    padding: 8px 18px; /* Un poco más pequeño que la notificación */
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    min-width: 80px; /* Ancho mínimo para que no se encoja */
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.timer-pill-base.visible {
+    transform: translateY(0); /* Visible en su posición */
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Ocultar la píldora cuando una ventana de app está abierta o maximizada */
+body.app-open .timer-pill-base.visible,
+body.window-maximized .timer-pill-base.visible {
+    transform: translateY(150%);
+    opacity: 0;
+    pointer-events: none;
+}
 
