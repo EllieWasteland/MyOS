@@ -1,7 +1,5 @@
-// Importar las funciones del gestor de datos centralizado
 import { getUnifiedData, saveUnifiedData } from '../data-manager.js';
 
-// --- Ejecución Principal al Cargar el DOM ---
 document.addEventListener('DOMContentLoaded', () => {
 
     // --- Selectores de Elementos DOM ---
@@ -38,10 +36,8 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsRouteDuration: getEl('details-route-duration'),
         closeDetailsBtn: getEl('close-details-btn'),
         recenterBtn: getEl('recenter-btn'),
-        // --- INICIO DE LA MODIFICACIÓN ---
-        preloadMapBtn: getEl('preload-map-btn'), // Nuevo botón en Ajustes
-        preloadOverlay: getEl('preload-overlay'), // Nuevo overlay de carga
-        // --- FIN DE LA MODIFICACIÓN ---
+        preloadMapBtn: getEl('preload-map-btn'),
+        preloadOverlay: getEl('preload-overlay'),
     };
 
     // --- Estado Global de la Aplicación ---
@@ -49,7 +45,7 @@ document.addEventListener('DOMContentLoaded', () => {
         isRecording: false,
         isPaused: false,
         isDynamicCameraActive: false,
-        isPreloading: false, // Nuevo estado para saber si se está pre-cargando
+        isPreloading: false,
         map: null,
         userMarker: null,
         lastKnownPosition: null,
@@ -66,8 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Módulo de UI (Interfaz de Usuario) ---
     const ui = {
-        initialize: () => {
-            const data = getUnifiedData();
+        initialize: async () => {
+            const data = await getUnifiedData();
             const mapStyle = data.myRoute.settings.mapStyle || 'dark';
             ui.applyTheme(mapStyle);
             DOMElements.mapStyleSelect.value = mapStyle;
@@ -97,13 +93,11 @@ document.addEventListener('DOMContentLoaded', () => {
             modal.classList.toggle('hidden', !show);
             modal.classList.toggle('flex', show);
         },
-        // --- INICIO DE LA MODIFICACIÓN ---
         togglePreloadOverlay: (show) => {
             if (DOMElements.preloadOverlay) {
                 DOMElements.preloadOverlay.classList.toggle('hidden', !show);
             }
         },
-        // --- FIN DE LA MODIFICACIÓN ---
         updateRecordingStats: () => {
             const now = appState.isPaused ? appState.pausedTime : Date.now();
             const elapsedTime = now - appState.startTime - appState.totalPausedTime;
@@ -111,8 +105,9 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.statDistance.textContent = util.calculateTotalDistance(appState.route.coords).toFixed(2);
             DOMElements.statCurrentSpeed.textContent = (appState.currentSpeed * 3.6).toFixed(1);
         },
-        renderRoutesList: () => {
-            const routes = getUnifiedData().myRoute.routes || [];
+        renderRoutesList: async () => {
+            const data = await getUnifiedData();
+            const routes = data.myRoute.routes || [];
             DOMElements.routesList.innerHTML = routes.length ? '' : '<li class="text-center p-4 text-secondary">No tienes rutas guardadas.</li>';
             routes.slice().reverse().forEach(route => {
                 const li = document.createElement('li');
@@ -127,8 +122,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOMElements.routesList.appendChild(li);
             });
         },
-        showRouteDetails: (routeId) => {
-            const route = getUnifiedData().myRoute.routes.find(r => r.id == routeId);
+        showRouteDetails: async (routeId) => {
+            const data = await getUnifiedData();
+            const route = data.myRoute.routes.find(r => r.id == routeId);
             if (!route) return;
             DOMElements.detailsRouteName.textContent = route.name;
             DOMElements.detailsRouteDate.textContent = new Date(route.date).toLocaleDateString();
@@ -165,11 +161,12 @@ document.addEventListener('DOMContentLoaded', () => {
                     attributionControl: false
                 });
                 
-                appState.map.on('load', () => {
+                appState.map.on('load', async () => {
                     mapLogic.setupMapLayers();
                     mapLogic.setupUserMarker();
                     mapLogic.startGeolocation();
-                    ui.applyTheme(getUnifiedData().myRoute.settings.mapStyle);
+                    const data = await getUnifiedData();
+                    ui.applyTheme(data.myRoute.settings.mapStyle);
                 });
 
                 appState.map.on('dragstart', () => { if(appState.isDynamicCameraActive && !appState.isPreloading) ui.showStatus('Control manual activado', 1500); appState.isDynamicCameraActive = false; });
@@ -261,7 +258,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 mapLogic.updateDynamicCamera();
             }
         },
-        // --- INICIO DE LA MODIFICACIÓN: Nueva función de pre-cargado ---
         preloadMapArea: async () => {
             if (!appState.lastKnownPosition) {
                 return ui.showStatus('Espera a tener una señal de GPS estable.', 2000);
@@ -273,9 +269,9 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.showStatus('Pre-cargando mapa...', 0);
 
             const center = appState.lastKnownPosition.coords;
-            const zoom = 14; // Nivel de zoom fijo para el pre-cargado
-            const areaSizeKm = 30; // 30km x 30km
-            const steps = 6; // Cuadrícula de 6x6 para el barrido
+            const zoom = 14;
+            const areaSizeKm = 30;
+            const steps = 6;
 
             const kmPerDegree = 111.32;
             const latOffset = (areaSizeKm / 2) / kmPerDegree;
@@ -307,7 +303,6 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.showStatus('Mapa pre-cargado para la zona.', 3000);
             appState.isPreloading = false;
         },
-        // --- FIN DE LA MODIFICACIÓN ---
         updateRouteLine: (coords, type) => {
             const source = appState.map.getSource(`${type}-source`);
             if (source) source.setData({ type: 'Feature', geometry: { type: 'LineString', coordinates: coords } });
@@ -370,8 +365,8 @@ document.addEventListener('DOMContentLoaded', () => {
             DOMElements.routeNameInput.value = `Ruta - ${new Date().toLocaleString('es-EC', {timeZone: 'America/Guayaquil'})}`;
             ui.toggleModal(DOMElements.saveModal, true);
         },
-        save: (name) => {
-            const data = getUnifiedData();
+        save: async (name) => {
+            const data = await getUnifiedData();
             
             const routeData = {
                 id: appState.route.id,
@@ -383,7 +378,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             data.myRoute.routes.push(routeData);
-            saveUnifiedData(data);
+            await saveUnifiedData(data);
             ui.showStatus('Ruta guardada con éxito', 2000);
             recording.reset();
         },
@@ -402,11 +397,11 @@ document.addEventListener('DOMContentLoaded', () => {
             ui.showPanel(DOMElements.initialControls, true);
             mapLogic.clearRouteLine('recording');
         },
-        delete: (routeId) => {
-            let data = getUnifiedData();
+        delete: async (routeId) => {
+            let data = await getUnifiedData();
             data.myRoute.routes = data.myRoute.routes.filter(r => r.id != routeId);
-            saveUnifiedData(data);
-            ui.renderRoutesList();
+            await saveUnifiedData(data);
+            await ui.renderRoutesList();
             ui.showStatus('Ruta eliminada.');
             if(DOMElements.routeDetailsPanel.classList.contains('active')) {
                 ui.hideRouteDetails();
@@ -443,15 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
         style.id = styleId;
         style.innerHTML = `
             @media (orientation: landscape) and (max-height: 500px) {
-                #recording-stats-panel.bottom-panel {
-                    display: flex;
-                    flex-direction: row;
-                    align-items: center;
-                    justify-content: space-between;
-                    gap: 0.75rem;
-                    padding: 0.5rem;
-                    background: var(--bg-primary); 
-                }
+                #recording-stats-panel.bottom-panel { display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.5rem; background: var(--bg-primary); }
                 #recording-stats-panel .stat-pill { flex-grow: 1; }
                 #recording-stats-panel .flex.justify-center { margin-top: 0; flex-shrink: 0; }
                 #pause-resume-btn { width: 3rem; height: 3rem; font-size: 1.25rem; }
@@ -474,14 +461,14 @@ document.addEventListener('DOMContentLoaded', () => {
         };
         DOMElements.settingsBtn.onclick = () => ui.toggleSidePanel(DOMElements.settingsPanel, true);
         DOMElements.closeSettingsBtn.onclick = () => ui.toggleSidePanel(DOMElements.settingsPanel, false);
-        DOMElements.routesBtn.onclick = () => { ui.renderRoutesList(); ui.toggleSidePanel(DOMElements.routesPanel, true); };
+        DOMElements.routesBtn.onclick = async () => { await ui.renderRoutesList(); ui.toggleSidePanel(DOMElements.routesPanel, true); };
         DOMElements.closeRoutesBtn.onclick = () => ui.toggleSidePanel(DOMElements.routesPanel, false);
-        DOMElements.mapStyleSelect.onchange = (e) => {
+        DOMElements.mapStyleSelect.onchange = async (e) => {
             const newStyle = e.target.value;
             ui.applyTheme(newStyle);
-            const data = getUnifiedData();
+            const data = await getUnifiedData();
             data.myRoute.settings.mapStyle = newStyle;
-            saveUnifiedData(data);
+            await saveUnifiedData(data);
         };
         DOMElements.routesList.addEventListener('click', (e) => {
             const viewBtn = e.target.closest('.view-route-btn');
@@ -496,17 +483,15 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         DOMElements.closeDetailsBtn.onclick = ui.hideRouteDetails;
         DOMElements.recenterBtn.onclick = mapLogic.recenterMap;
-        // --- INICIO DE LA MODIFICACIÓN ---
         if (DOMElements.preloadMapBtn) {
             DOMElements.preloadMapBtn.onclick = mapLogic.preloadMapArea;
         }
-        // --- FIN DE LA MODIFICACIÓN ---
     };
 
     // --- Inicialización ---
     const init = async () => {
         applyResponsiveStyles();
-        ui.initialize();
+        await ui.initialize();
         await mapLogic.initialize();
         bindEvents();
     };
