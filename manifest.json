@@ -1,6 +1,6 @@
 {
-  "name": "MyOS",
-  "short_name": "MyOS -EC",
+  "name": "MySoul OS",
+  "short_name": "MySoul",
   "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#000000",

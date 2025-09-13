@@ -401,8 +401,8 @@
     </div>
 
     <input type="file" id="wallpaper-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/gif">
-
-    <script type="module" src="main.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
+    <script type="module" src="./modules/main.js"></script>
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
@@ -411,25 +411,6 @@
                     .catch(error => console.log('Error al registrar el Service Worker:', error));
             });
         }
-    </script>
-    <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        // --- Lógica del Widget de Búsqueda de Google ---
-        const googleSearchForm = document.getElementById('google-search-form');
-        const googleSearchInput = document.getElementById('google-search-input');
-
-        if (googleSearchForm) {
-            googleSearchForm.addEventListener('submit', (e) => {
-                e.preventDefault();
-                const query = googleSearchInput.value.trim();
-                if (query) {
-                    const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-                    window.open(searchUrl, '_blank');
-                    googleSearchInput.value = '';
-                }
-            });
-        }
-    });
     </script>
 </body>
 </html>

@@ -1,4 +1,5 @@
-// Este archivo centraliza toda la lógica de almacenamiento local.
+// Este archivo centraliza toda la lógica de almacenamiento.
+import { get, set } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/index.js';
 
 const UNIFIED_STORAGE_KEY = 'mySoul-data-v1';
 
@@ -40,7 +41,6 @@ export function getDefaultUnifiedState() {
             onboardingComplete: false,
             externalApps: [],
             shortcuts: [],
-            // NUEVO: Sistema de versionado para control de cambios
             version: `v1-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
             lastModified: new Date().toISOString()
         }
@@ -82,19 +82,19 @@ function isObject(item) {
 }
 
 /**
- * Obtiene los datos unificados desde localStorage.
+ * Obtiene los datos unificados desde IndexedDB.
  * Fusiona los datos guardados con el estado por defecto para asegurar que todas las propiedades existan.
- * @returns {object} El estado completo de la aplicación.
+ * @returns {Promise<object>} El estado completo de la aplicación.
  */
-export function getUnifiedData() {
-    const data = localStorage.getItem(UNIFIED_STORAGE_KEY);
+export async function getUnifiedData() {
+    const data = await get(UNIFIED_STORAGE_KEY);
     const defaultState = getDefaultUnifiedState();
     if (data) {
         try {
-            const parsedData = JSON.parse(data);
-            return deepMerge(defaultState, parsedData);
+            // idb-keyval ya devuelve el objeto parseado
+            return deepMerge(defaultState, data);
         } catch (error) {
-            console.error("Error al parsear datos unificados, se retorna al estado por defecto:", error);
+            console.error("Error al fusionar datos unificados, se retorna al estado por defecto:", error);
             return defaultState;
         }
     }
@@ -102,21 +102,23 @@ export function getUnifiedData() {
 }
 
 /**
- * Guarda el objeto de estado unificado en localStorage.
+ * Guarda el objeto de estado unificado en IndexedDB.
  * @param {object} data - El objeto de estado completo para guardar.
  */
-export function saveUnifiedData(data) {
+export async function saveUnifiedData(data) {
     try {
         const dataToSave = { ...data };
         if (!dataToSave.globalSettings) {
             dataToSave.globalSettings = {};
         }
-        // ACTUALIZADO: Cada vez que se guardan los datos, se genera una nueva versión y fecha.
+        // Cada vez que se guardan los datos, se genera una nueva versión y fecha.
         dataToSave.globalSettings.version = `v1-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         dataToSave.globalSettings.lastModified = new Date().toISOString();
         
-        localStorage.setItem(UNIFIED_STORAGE_KEY, JSON.stringify(dataToSave));
+        // idb-keyval guarda el objeto directamente
+        await set(UNIFIED_STORAGE_KEY, dataToSave);
     } catch (error) {
         console.error("Error al guardar los datos unificados:", error);
+        window.showGlobalNotification?.('Error al guardar datos. El almacenamiento puede estar lleno.', true);
     }
 }
