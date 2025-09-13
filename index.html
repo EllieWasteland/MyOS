@@ -142,11 +142,35 @@
         <!-- Google Search Widget -->
         <div id="google-search-widget-container">
             <form id="google-search-form" class="google-search-form">
-                <input type="text" id="google-search-input" placeholder="Buscar en Google..." autocomplete="off">
-                <button type="submit" id="google-search-button">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                </button>
+                <input type="text" id="google-search-input" placeholder="¿Te puedo ayudar?" autocomplete="off">
+                
+                <!-- Botones de búsqueda agrupados -->
+                <div class="search-buttons-container">
+                    <button type="button" id="gemini-search-button" title="Preguntar a Gemini">
+                        <!-- Ícono de estrella para Gemini -->
+                        <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor">
+                            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21 12 17.27z"/>
+                        </svg>
+                    </button>
+                    <button type="submit" id="google-search-button" title="Buscar en Google">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    </button>
+                </div>
             </form>
+             <!-- Gemini Response Container -->
+            <div id="gemini-response-container" class="hidden">
+                 <div id="gemini-response-content">
+                    <div id="gemini-loader" class="hidden">
+                        <div class="gemini-spinner"></div>
+                    </div>
+                    <div id="gemini-response-text"></div>
+                 </div>
+                 <div id="gemini-actions" class="hidden">
+                    <button id="gemini-copy-btn" title="Copiar respuesta">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                 </div>
+            </div>
         </div>
 
         <main id="desktop" class="h-screen w-screen relative p-4 md:p-6 pt-24">
@@ -401,7 +425,7 @@
     </div>
 
     <input type="file" id="wallpaper-input" class="hidden" accept="image/jpeg, image/png, image/webp, image/gif">
-    <script src="https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js"></script>
+    <!-- El script idb-keyval ya no se carga aquí, se carga dinámicamente en main.js -->
     <script type="module" src="./modules/main.js"></script>
     <script>
         if ('serviceWorker' in navigator) {

@@ -441,26 +441,38 @@ body.window-maximized nav {
 #google-search-widget-container {
     position: fixed;
     top: 2rem; /* 32px */
-    left: 50%;
-    transform: translateX(-50%);
+    left: 1rem; /* Align with taskbar padding */
+    right: 1rem; /* Align with taskbar padding */
     z-index: 40; /* Above desktop icons but below modals */
     transition: transform 0.3s ease-in-out, opacity 0.3s ease-in-out;
+    max-width: 500px;
+    /* Center the container when screen is wide enough */
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .google-search-form {
     display: flex;
     align-items: center;
     width: 100%;
-    max-width: 500px;
     background-color: var(--theme-bg-translucent, rgba(249, 231, 241, 0.85));
     border: 1px solid var(--theme-border, rgba(190, 24, 93, 0.3));
     border-radius: 9999px; /* pill shape */
-    padding: 6px;
+    padding: 6px 8px 6px 6px; /* Adjusted padding */
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    transition: all 0.3s ease;
+    /* MODIFIED: Removed border-radius from transition for a clean snap */
+    transition: box-shadow 0.3s ease, background-color 0.3s ease;
+    position: relative;
 }
+
+.google-search-form.gemini-active {
+    border-radius: 1.5rem 1.5rem 0 0;
+    /* ADDED: Ensure background is opaque during animation */
+    background-color: var(--theme-bg, rgb(249, 231, 241));
+}
+
 
 .google-search-form:focus-within {
     box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
@@ -472,7 +484,7 @@ body.window-maximized nav {
     border: none;
     outline: none;
     background-color: transparent;
-    padding: 6px 12px;
+    padding: 6px 16px;
     font-size: 1rem;
     color: var(--theme-text, rgb(190, 24, 93));
 }
@@ -482,7 +494,18 @@ body.window-maximized nav {
     opacity: 0.6;
 }
 
-#google-search-button {
+/* NEW: Button container styles */
+.search-buttons-container {
+    display: flex;
+    align-items: center;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 9999px;
+    padding: 2px;
+}
+
+/* MODIFIED: Button styles */
+#google-search-button,
+#gemini-search-button {
     flex-shrink: 0;
     display: flex;
     align-items: center;
@@ -490,16 +513,121 @@ body.window-maximized nav {
     width: 40px;
     height: 40px;
     border: none;
-    background-color: rgba(0,0,0,0.05);
+    background-color: transparent; /* Container has background now */
     color: var(--theme-text, rgb(190, 24, 93));
+    border-radius: 9999px;
+    cursor: pointer;
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    margin-left: 0; /* Remove old margin */
+}
+
+#gemini-search-button {
+    opacity: 0.7;
+}
+
+#google-search-button:hover,
+#gemini-search-button:hover {
+    background-color: rgba(0,0,0,0.1);
+    opacity: 1;
+}
+
+#gemini-search-button:hover {
+    transform: scale(1.1);
+}
+
+#gemini-response-container {
+    position: absolute;
+    top: 100%; /* Align perfectly with the bottom of the form */
+    left: 0;
+    right: 0;
+    background-color: var(--theme-bg, rgb(249, 231, 241));
+    border: 1px solid var(--theme-border, rgba(190, 24, 93, 0.3));
+    border-top: none;
+    border-bottom-left-radius: 1.5rem;
+    border-bottom-right-radius: 1.5rem;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    padding: 1.25rem;
+    padding-top: 1rem;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    /* MODIFIED: Synced transition duration */
+    transition: max-height 0.3s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    gap: 1rem;
+}
+
+#gemini-response-container:not(.hidden) {
+    max-height: 50vh;
+    opacity: 1;
+    padding: 1.25rem;
+    padding-top: 1rem;
+}
+
+#gemini-response-content {
+    flex-grow: 1;
+    overflow-y: auto;
+    max-height: calc(50vh - 40px);
+    color: var(--theme-text);
+    font-size: 0.95rem;
+    line-height: 1.6;
+}
+#gemini-response-content::-webkit-scrollbar { width: 6px; }
+#gemini-response-content::-webkit-scrollbar-track { background: transparent; }
+#gemini-response-content::-webkit-scrollbar-thumb { background: rgba(0,0,0,0.1); border-radius: 3px; }
+#gemini-response-content::-webkit-scrollbar-thumb:hover { background: rgba(0,0,0,0.2); }
+
+
+#gemini-response-text p { margin-bottom: 1em; }
+#gemini-response-text h1, #gemini-response-text h2, #gemini-response-text h3 { font-weight: bold; margin-bottom: 0.5em; margin-top: 1em; }
+#gemini-response-text ul, #gemini-response-text ol { margin-left: 1.5em; margin-bottom: 1em; }
+#gemini-response-text li { margin-bottom: 0.5em; }
+#gemini-response-text code { background-color: rgba(0,0,0,0.05); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+#gemini-response-text pre { background-color: rgba(0,0,0,0.05); padding: 1em; border-radius: 8px; overflow-x: auto; }
+
+#gemini-actions {
+    flex-shrink: 0;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+#gemini-actions:not(.hidden) {
+    opacity: 1;
+}
+
+#gemini-copy-btn {
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(0,0,0,0.05);
+    color: var(--theme-text);
+    border: none;
     border-radius: 9999px;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
 
-#google-search-button:hover {
+#gemini-copy-btn:hover {
     background-color: rgba(0,0,0,0.1);
 }
+
+.gemini-spinner {
+    margin: 2rem auto;
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border-left-color: var(--theme-text);
+    animation: spin 1s ease infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
 
 /* --- MEJORA: Ocultar barra de búsqueda al abrir una app --- */
 body.app-open #google-search-widget-container,
@@ -542,3 +670,6 @@ body.window-maximized #google-search-widget-container {
     text-align: left;
     width: 100%;
 }
+
+
+
