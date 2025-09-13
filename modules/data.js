@@ -1,7 +1,9 @@
 // --- Módulo de Gestión de Datos ---
+import { get, set } from 'https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/index.js';
 
 const UNIFIED_STORAGE_KEY = 'mySoul-data-v1';
 
+// Devuelve el estado inicial por defecto de la aplicación.
 function getDefaultUnifiedState() {
     return {
         myTime: {
@@ -60,6 +62,7 @@ function getDefaultUnifiedState() {
     };
 }
 
+// Combina recursivamente el estado guardado con el estado por defecto para evitar errores.
 function deepMerge(target, source) {
     const output = { ...target
     };
@@ -81,35 +84,52 @@ function deepMerge(target, source) {
     return output;
 }
 
+// Comprueba si un item es un objeto.
 function isObject(item) {
     return (item && typeof item === 'object' && !Array.isArray(item));
 }
 
-export function getUnifiedData() {
-    const data = localStorage.getItem(UNIFIED_STORAGE_KEY);
+/**
+ * Obtiene los datos unificados desde IndexedDB.
+ * Es una función asíncrona.
+ * @returns {Promise<Object>} El objeto de datos de la aplicación.
+ */
+export async function getUnifiedData() {
+    const data = await get(UNIFIED_STORAGE_KEY);
     const defaultState = getDefaultUnifiedState();
     if (data) {
         try {
-            return deepMerge(defaultState, JSON.parse(data));
+            // idb-keyval devuelve el objeto directamente, no es necesario JSON.parse
+            return deepMerge(defaultState, data);
         } catch (error) {
-            console.error("Error parsing unified data, returning to default state:", error);
+            console.error("Error merging unified data, returning to default state:", error);
             return defaultState;
         }
     }
     return defaultState;
 }
 
-export function saveUnifiedData(data) {
+/**
+ * Guarda el objeto de datos unificados en IndexedDB.
+ * Es una función asíncrona.
+ * @param {Object} data - El objeto de datos completo de la aplicación.
+ */
+export async function saveUnifiedData(data) {
     try {
         const dataToSave = { ...data
         };
         if (!dataToSave.globalSettings) {
             dataToSave.globalSettings = {};
         }
+        // Actualiza la versión y la fecha de modificación antes de guardar.
         dataToSave.globalSettings.version = `v1-${Date.now()}-${Math.random().toString(36).substring(2, 9)}`;
         dataToSave.globalSettings.lastModified = new Date().toISOString();
-        localStorage.setItem(UNIFIED_STORAGE_KEY, JSON.stringify(dataToSave));
+        
+        // idb-keyval guarda el objeto directamente, no es necesario JSON.stringify
+        await set(UNIFIED_STORAGE_KEY, dataToSave);
     } catch (error) {
         console.error("Error saving unified data:", error);
+        // Notifica al usuario si el guardado falla (por ejemplo, por falta de espacio).
+        window.showGlobalNotification?.('Error al guardar datos. El almacenamiento puede estar lleno.', true);
     }
 }

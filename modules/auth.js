@@ -143,10 +143,11 @@ function showPinError(message, title = "Error") {
     }, 1200);
 }
 
-function handlePinEntry() {
+// [MODIFICADO] La función ahora es asíncrona porque llama a 'proceedToMainContent'
+async function handlePinEntry() {
     if (isLoginMode) {
         if (currentPin === savedPin) {
-            proceedToMainContent({
+            await proceedToMainContent({
                 isLogin: true,
                 username: username,
                 pfp: document.getElementById('profile-pic-preview').src
@@ -159,7 +160,8 @@ function handlePinEntry() {
 
     if (isConfirmingPin) {
         if (currentPin === savedPin) {
-            setTimeout(() => proceedToMainContent({
+            // [MODIFICADO] Se espera a que la función asíncrona termine
+            setTimeout(async () => await proceedToMainContent({
                 isLogin: false,
                 username: username,
                 pin: savedPin,
@@ -231,10 +233,6 @@ export function getAuthDetails() {
     };
 }
 
-/**
- * Fuerza una re-autenticación con Google, mostrando el popup de consentimiento.
- * Devuelve una promesa que se resuelve con el nuevo token si tiene éxito.
- */
 export function forceGoogleReauth() {
     return new Promise((resolve, reject) => {
         if (!tokenClient) {
@@ -252,18 +250,12 @@ export function forceGoogleReauth() {
             }
         };
 
-        // Esto siempre le pedirá al usuario el consentimiento, asegurando un token nuevo.
         tokenClient.requestAccessToken({
             prompt: 'consent'
         });
     });
 }
 
-/**
- * [NUEVA FUNCIÓN]
- * Limpia la variable que almacena el PIN introducido por el usuario y actualiza la UI.
- * Se exporta para poder ser llamada desde otros módulos.
- */
 export function resetPinInput() {
     currentPin = '';
     updatePinDisplay();
@@ -322,4 +314,3 @@ export function initAuth() {
         }
     });
 }
-

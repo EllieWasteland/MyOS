@@ -17,11 +17,6 @@ import {
 
 // --- Funciones de Utilidad de UI ---
 
-/**
- * [NUEVA FUNCIÓN]
- * Carga un script de forma asíncrona. Se añade aquí para evitar
- * dependencias circulares con otros módulos.
- */
 function loadScript(src) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
@@ -38,10 +33,8 @@ export function showNotification(message, isError = false) {
     const notification = document.getElementById('notification');
     notification.textContent = message;
     notification.classList.add('notification-visible');
-    // Simple way to handle error styling if needed
     notification.style.backgroundColor = isError ? 'var(--theme-bg)' : '';
     notification.style.color = isError ? 'red' : '';
-
 
     setTimeout(() => {
         notification.classList.remove('notification-visible');
@@ -73,8 +66,9 @@ export function showConfirmationModal(title, message, onConfirm) {
         </div>`;
     genericModal.style.display = 'flex';
 
-    document.getElementById('modal-confirm-action').addEventListener('click', () => {
-        onConfirm();
+    document.getElementById('modal-confirm-action').addEventListener('click', async () => {
+        // onConfirm puede ser asíncrono, así que lo esperamos.
+        await onConfirm();
         genericModal.style.display = 'none';
     }, {
         once: true
@@ -116,9 +110,9 @@ export function showConflictModal(localData, cloudData, differences, onResolve) 
         genericModal.style.display = 'none';
     };
 
-    document.getElementById('modal-restore-cloud').addEventListener('click', () => {
+    document.getElementById('modal-restore-cloud').addEventListener('click', async () => {
         close();
-        onResolve(cloudData);
+        await onResolve(cloudData);
     }, {
         once: true
     });
@@ -141,7 +135,7 @@ function rgbToHsl(r, g, b) {
     let h, s, l = (max + min) / 2;
 
     if (max === min) {
-        h = s = 0; // achromatic
+        h = s = 0;
     } else {
         const d = max - min;
         s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
@@ -164,7 +158,7 @@ function rgbToHsl(r, g, b) {
 function hslToRgb(h, s, l) {
     let r, g, b;
     if (s === 0) {
-        r = g = b = l; // achromatic
+        r = g = b = l;
     } else {
         const hue2rgb = (p, q, t) => {
             if (t < 0) t += 1;
@@ -188,10 +182,8 @@ async function updateAdaptiveTheme(imageUrl) {
     const body = document.body;
     body.className = body.className.replace(/theme-\S+/g, ' ');
 
-    // Asegúrate de que ColorThief esté cargado
     if (typeof ColorThief === 'undefined') {
         try {
-            // [CORREGIDO] Llama a la función loadScript local de este archivo.
             await loadScript('https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.2/color-thief.umd.js');
         } catch (error) {
             console.error("Failed to load ColorThief script:", error);
@@ -234,27 +226,27 @@ async function updateAdaptiveTheme(imageUrl) {
     img.src = imageUrl;
 }
 
-function applyManualTheme(colorName) {
+async function applyManualTheme(colorName) {
     const styleSheet = document.getElementById('dynamic-theme-styles');
-    styleSheet.innerHTML = ''; // Clear adaptive styles
+    styleSheet.innerHTML = '';
 
     const body = document.body;
     body.className = body.className.replace(/theme-\S+/g, ' ');
     body.classList.add(`theme-${colorName}`);
 
-    const data = getUnifiedData();
+    const data = await getUnifiedData();
     data.myTime.manualThemeColor = colorName;
-    saveUnifiedData(data);
+    await saveUnifiedData(data);
 }
 
-export function applyCurrentTheme() {
-    const data = getUnifiedData();
+export async function applyCurrentTheme() {
+    const data = await getUnifiedData();
     applyWallpaperUI(data.myTime.wallpaper);
 
     if (data.myTime.adaptiveTheme) {
-        updateAdaptiveTheme(data.myTime.wallpaper);
+        await updateAdaptiveTheme(data.myTime.wallpaper);
     } else {
-        applyManualTheme(data.myTime.manualThemeColor || 'pink');
+        await applyManualTheme(data.myTime.manualThemeColor || 'pink');
     }
 }
 
@@ -306,7 +298,7 @@ export async function goToLoginStep(step) {
     }
 }
 
-export function proceedToMainContent({
+export async function proceedToMainContent({
     isLogin,
     username,
     pin,
@@ -314,8 +306,8 @@ export function proceedToMainContent({
     loginMethod,
     googleProfile
 }) {
-    const unifiedData = getUnifiedData();
     if (!isLogin) {
+        const unifiedData = await getUnifiedData();
         unifiedData.globalSettings.onboardingComplete = true;
         unifiedData.globalSettings.userProfile = {
             username,
@@ -324,12 +316,12 @@ export function proceedToMainContent({
             loginMethod,
             googleProfile
         };
-        saveUnifiedData(unifiedData);
+        await saveUnifiedData(unifiedData);
     }
 
-    applyCurrentTheme();
-    renderCustomApps();
-    renderDesktopShortcuts();
+    await applyCurrentTheme();
+    await renderCustomApps();
+    await renderDesktopShortcuts();
 
     document.getElementById('animated-bg').classList.remove('zoomed-in');
     document.getElementById('login-screen').style.opacity = '0';
@@ -342,36 +334,11 @@ export function proceedToMainContent({
     });
 }
 
-export function handleLogout() {
-    hideStartMenu();
-    closeApp();
-    stopTimer();
-
-    document.getElementById('main-content').classList.add('opacity-0', 'pointer-events-none');
-
-    const loginScreen = document.getElementById('login-screen');
-    loginScreen.style.display = 'flex';
-    setTimeout(() => {
-        loginScreen.style.opacity = '1';
-        loginScreen.classList.remove('pointer-events-none');
-    }, 100);
-
-    document.getElementById('animated-bg').classList.add('zoomed-in');
-
-    goToLoginStep('3');
-    const unifiedData = getUnifiedData();
-    const username = unifiedData.globalSettings.userProfile.username;
-    document.getElementById('pin-greeting').textContent = `Hola, ${username}`;
-    document.getElementById('pin-subtitle').textContent = "Introduce tu PIN para continuar.";
-    // Reset PIN state in auth module if necessary
-}
-
 // --- Lógica de la Ventana de Ajustes ---
-function openSettingsWindow() {
-    const data = getUnifiedData();
+async function openSettingsWindow() {
+    const data = await getUnifiedData();
     const userProfile = data.globalSettings.userProfile;
 
-    // Populate Account Info
     if (userProfile && userProfile.loginMethod === 'google') {
         document.getElementById('google-account-info').classList.remove('hidden');
         document.getElementById('offline-account-info').classList.add('hidden');
@@ -385,7 +352,6 @@ function openSettingsWindow() {
         document.getElementById('settings-username-offline').textContent = userProfile.username;
     }
 
-    // Populate Personalization
     const adaptiveToggle = document.getElementById('adaptive-mode-toggle');
     adaptiveToggle.checked = data.myTime.adaptiveTheme;
     document.getElementById('manual-color-picker').classList.toggle('hidden', adaptiveToggle.checked);
@@ -409,66 +375,79 @@ function closeSettingsWindow() {
 
 
 export function initUI() {
-    // --- Event Listeners Globales ---
     document.addEventListener('click', (e) => {
-        // Cierra menús si se hace clic fuera
         const startMenu = document.getElementById('start-menu');
         const startBtn = document.getElementById('start-btn');
         if (!startMenu.contains(e.target) && !startBtn.contains(e.target)) {
             hideStartMenu();
         }
-        // ... otros listeners globales
     });
 
-    // --- Listeners de Ajustes ---
-    document.getElementById('settings-menu-btn').addEventListener('click', () => {
+    document.getElementById('settings-menu-btn').addEventListener('click', async () => {
         hideStartMenu();
-        openSettingsWindow();
+        await openSettingsWindow();
     });
 
-    document.getElementById('adaptive-mode-toggle').addEventListener('change', (e) => {
+    document.getElementById('adaptive-mode-toggle').addEventListener('change', async (e) => {
         const isChecked = e.target.checked;
         document.getElementById('manual-color-picker').classList.toggle('hidden', isChecked);
-        const data = getUnifiedData();
+        const data = await getUnifiedData();
         data.myTime.adaptiveTheme = isChecked;
-        saveUnifiedData(data);
-        applyCurrentTheme();
+        await saveUnifiedData(data);
+        await applyCurrentTheme();
     });
 
-    document.getElementById('manual-color-picker').addEventListener('click', (e) => {
+    document.getElementById('manual-color-picker').addEventListener('click', async (e) => {
         const target = e.target.closest('button[data-color]');
         if (target) {
             const color = target.dataset.color;
-            applyManualTheme(color);
+            await applyManualTheme(color);
         }
     });
 
     document.getElementById('wallpaper-input').addEventListener('change', (event) => {
         const file = event.target.files[0];
-        if (!file) return;
+        if (!file) {
+            event.target.value = null;
+            return;
+        }
+
+        if (file.size > 10 * 1024 * 1024) {
+            showNotification('La imagen es demasiado grande (máx 10MB).', true);
+            event.target.value = null;
+            return;
+        }
 
         const reader = new FileReader();
-        reader.onload = (e) => {
+        reader.onload = async (e) => {
             const base64String = e.target.result;
-            const data = getUnifiedData();
+            const data = await getUnifiedData();
             data.myTime.wallpaper = base64String;
-            saveUnifiedData(data);
-            applyCurrentTheme();
+            await saveUnifiedData(data);
+            
+            await applyCurrentTheme();
+
+            const currentWallpaperPreview = document.getElementById('current-wallpaper-preview');
+            currentWallpaperPreview.innerHTML = `
+                <div class="wallpaper-preview-item">
+                    <img src="${base64String}" alt="Fondo de pantalla actual">
+                </div>
+            `;
             showNotification('Fondo de pantalla actualizado.');
-            hideStartMenu();
         };
+
         reader.onerror = () => {
-            showNotification('Error al leer la imagen.', true);
+            showNotification('Error al leer el archivo de imagen.', true);
         };
+
         reader.readAsDataURL(file);
-        event.target.value = null; // Permite seleccionar el mismo archivo de nuevo
+        event.target.value = null;
     });
 
     document.getElementById('change-wallpaper-btn').addEventListener('click', () => {
         document.getElementById('wallpaper-input').click();
     });
 
-    // Listeners de navegación de ajustes
     document.querySelectorAll('.settings-nav-btn').forEach(btn => {
         btn.addEventListener('click', () => {
             document.querySelector('.settings-nav-btn.active').classList.remove('active', 'bg-black/10');
@@ -478,7 +457,6 @@ export function initUI() {
         });
     });
 
-    // Listener para cerrar la ventana de ajustes si se hace clic fuera
     document.addEventListener('click', (e) => {
         const settingsWindow = document.getElementById('settings-window');
         const settingsMenuBtn = document.getElementById('settings-menu-btn');
@@ -487,4 +465,3 @@ export function initUI() {
         }
     });
 }
-

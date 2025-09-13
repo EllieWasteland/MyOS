@@ -158,7 +158,6 @@ export const openApp = (url, title, iconHtml, clickedIcon) => {
 
 // --- Lógica del Menú de Inicio y Cierre de Sesión ---
 
-// Moved from ui.js to break circular dependency
 async function handleLogout() {
     hideStartMenu();
     closeApp();
@@ -175,25 +174,23 @@ async function handleLogout() {
 
     document.getElementById('animated-bg').classList.add('zoomed-in');
 
-    // Dynamically import goToLoginStep to avoid circular static import
     const { goToLoginStep } = await import('./ui.js');
     goToLoginStep('3');
     
-    const unifiedData = getUnifiedData();
+    const unifiedData = await getUnifiedData();
     const username = unifiedData.globalSettings.userProfile.username;
     document.getElementById('pin-greeting').textContent = `Hola, ${username}`;
     document.getElementById('pin-subtitle').textContent = "Introduce tu PIN para continuar.";
 }
 
-export function showStartMenu() {
+export async function showStartMenu() {
     const startMenu = document.getElementById('start-menu');
     if (startMenu.classList.contains('visible')) return;
     closeDrawer();
     const greetingElement = document.getElementById('greeting');
     const hour = new Date().getHours();
     
-    // Correctly get data using the imported function
-    const data = getUnifiedData();
+    const data = await getUnifiedData();
     const username = data.globalSettings?.userProfile?.username || 'Invitado';
 
     greetingElement.innerHTML = `${hour < 12 ? 'Buenos días' : hour < 20 ? 'Buenas tardes' : 'Buenas noches'},<br>${username}`;
@@ -249,14 +246,12 @@ export function initDesktop() {
         document.getElementById('maximize-window-btn').innerHTML = isMaximized ? restoreIconSVG : maxIconSVG;
     });
 
-    document.getElementById('start-btn').addEventListener('click', (e) => {
+    document.getElementById('start-btn').addEventListener('click', async (e) => {
         e.stopPropagation();
-        showStartMenu();
+        await showStartMenu();
     });
     
-    // Correctly wire the logout button to the local function
     document.getElementById('logout-btn').addEventListener('click', handleLogout);
-
 
     // App Drawer
     const taskbar = document.getElementById('taskbar');
@@ -294,7 +289,6 @@ export function initDesktop() {
 
     window.addEventListener('resize', async () => {
         const { renderDesktopShortcuts } = await import('./apps.js');
-        renderDesktopShortcuts();
+        await renderDesktopShortcuts();
     });
 }
-

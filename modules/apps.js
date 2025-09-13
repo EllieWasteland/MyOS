@@ -32,8 +32,8 @@ async function getFaviconAsBase64(url) {
     }
 }
 
-export function renderCustomApps() {
-    const data = getUnifiedData();
+export async function renderCustomApps() {
+    const data = await getUnifiedData();
     const apps = data.globalSettings.externalApps || [];
     const customAppsGrid = document.getElementById('custom-apps-grid');
     const customAppsContainer = customAppsGrid.querySelector('.custom-app-item')?.parentElement || customAppsGrid;
@@ -56,9 +56,9 @@ export function renderCustomApps() {
             showAppContextMenu(e, app);
         });
 
-        appItem.querySelector('.delete-app-btn').addEventListener('click', (e) => {
+        appItem.querySelector('.delete-app-btn').addEventListener('click', async (e) => {
             e.stopPropagation();
-            deleteApp(app.id);
+            await deleteApp(app.id);
         });
 
         customAppsContainer.appendChild(appItem);
@@ -93,8 +93,8 @@ function showAppContextMenu(event, app) {
         window.open(app.url, '_blank');
         hideAppContextMenu();
     });
-    appContextMenu.querySelector('[data-action="add-desktop"]').addEventListener('click', () => {
-        addAppToDesktop(app);
+    appContextMenu.querySelector('[data-action="add-desktop"]').addEventListener('click', async () => {
+        await addAppToDesktop(app);
         hideAppContextMenu();
     });
 }
@@ -105,17 +105,17 @@ function hideAppContextMenu() {
     }
 }
 
-function deleteApp(appId) {
+async function deleteApp(appId) {
     showConfirmationModal(
         'Confirmar eliminación',
         '¿Estás seguro de que quieres eliminar esta aplicación?',
-        () => {
-            const data = getUnifiedData();
+        async () => {
+            const data = await getUnifiedData();
             data.globalSettings.externalApps = data.globalSettings.externalApps.filter(app => app.id !== appId);
             data.globalSettings.shortcuts = data.globalSettings.shortcuts.filter(shortcut => shortcut.id !== appId);
-            saveUnifiedData(data);
-            renderCustomApps();
-            renderDesktopShortcuts();
+            await saveUnifiedData(data);
+            await renderCustomApps();
+            await renderDesktopShortcuts();
             showNotification('Aplicación eliminada.');
         }
     );
@@ -179,11 +179,11 @@ function showAddAppModal() {
             icon: icon
         };
 
-        const data = getUnifiedData();
+        const data = await getUnifiedData();
         if (!data.globalSettings.externalApps) data.globalSettings.externalApps = [];
         data.globalSettings.externalApps.push(newApp);
-        saveUnifiedData(data);
-        renderCustomApps();
+        await saveUnifiedData(data);
+        await renderCustomApps();
         showNotification(`'${name}' ha sido añadida.`);
 
     }, {
@@ -191,16 +191,16 @@ function showAddAppModal() {
     });
 }
 
-function addAppToDesktop(app) {
-    const data = getUnifiedData();
+async function addAppToDesktop(app) {
+    const data = await getUnifiedData();
     const isAlreadyOnDesktop = data.globalSettings.shortcuts.some(s => s.id === app.id);
     if (isAlreadyOnDesktop) {
         showNotification(`'${app.name}' ya está en el escritorio.`);
         return;
     }
     data.globalSettings.shortcuts.push(app);
-    saveUnifiedData(data);
-    renderDesktopShortcuts();
+    await saveUnifiedData(data);
+    await renderDesktopShortcuts();
     showNotification(`'${app.name}' añadido al escritorio.`);
 }
 
@@ -224,10 +224,10 @@ function createDesktopIcon(shortcut) {
     return iconContainer;
 }
 
-export function renderDesktopShortcuts() {
+export async function renderDesktopShortcuts() {
     const desktop = document.getElementById('desktop');
     desktop.querySelectorAll('.desktop-shortcut').forEach(el => el.remove());
-    const data = getUnifiedData();
+    const data = await getUnifiedData();
     const shortcuts = data.globalSettings.shortcuts || [];
 
     const iconWidthWithGap = 80 + 16;

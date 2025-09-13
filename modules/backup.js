@@ -85,7 +85,6 @@ async function uploadFileToFolder(folderId, fileName, fileBlob, overwrite = fals
                 'body': multipartRequestBody
             });
 
-            // [MODIFICADO] Rechazar con el objeto de respuesta completo para un manejo de errores consistente
             request.execute((response) => {
                 if (response && !response.error) {
                     resolve(response);
@@ -102,8 +101,8 @@ async function uploadFileToFolder(folderId, fileName, fileBlob, overwrite = fals
 
 // --- Lógica de Restauración y Sincronización ---
 
-function applyRestoredData(data) {
-    saveUnifiedData(data);
+async function applyRestoredData(data) {
+    await saveUnifiedData(data);
 
     const savedUser = data.globalSettings?.userProfile;
     if (data.globalSettings?.onboardingComplete && savedUser?.pin) {
@@ -144,7 +143,7 @@ export async function checkForBackupAndProceed() {
                     });
                     const cloudData = JSON.parse(response.body);
 
-                    if (applyRestoredData(cloudData)) {
+                    if (await applyRestoredData(cloudData)) {
                         showNotification("Restauración completa. ¡Bienvenido de vuelta!", false);
                         const savedUser = cloudData.globalSettings.userProfile;
                         setTimeout(() => proceedToMainContent({
@@ -181,7 +180,6 @@ export async function checkForBackupAndProceed() {
     }
 }
 
-// [FUNCIÓN MODIFICADA]
 async function saveDataToDrive() {
     const {
         loginMethod
@@ -191,11 +189,10 @@ async function saveDataToDrive() {
         return;
     }
 
-    // Función interna para realizar la operación de guardado
     const executeSave = async () => {
         showNotification("Guardando en la nube...");
         const folderId = await findOrCreateAppFolder();
-        const dataToSync = getUnifiedData();
+        const dataToSync = await getUnifiedData();
         const fileContent = JSON.stringify(dataToSync, null, 2);
         const blob = new Blob([fileContent], {
             type: 'application/json'
@@ -205,7 +202,6 @@ async function saveDataToDrive() {
     };
 
     try {
-        // Si el token no existe, forzamos el flujo de re-autenticación simulando un error de auth
         if (!gapi.client.getToken()) {
             throw {
                 result: {
@@ -217,13 +213,12 @@ async function saveDataToDrive() {
         }
         await executeSave();
     } catch (err) {
-        // La API de Google anida los errores. Verificamos el código de error de autenticación (401).
         if (err?.result?.error?.code === 401) {
             try {
                 showNotification("Sesión expirada. Renueva el permiso...", false);
                 await forceGoogleReauth();
                 showNotification("Sesión renovada. Reintentando...", false);
-                await executeSave(); // Reintentar la operación una vez
+                await executeSave();
             } catch (retryErr) {
                 console.error("Re-authentication or retry failed:", retryErr);
                 showModalAlert("No se pudo renovar tu sesión con Google o la operación falló de nuevo. Por favor, inténtalo más tarde.", "Error de Sesión");
@@ -235,7 +230,6 @@ async function saveDataToDrive() {
     }
 }
 
-// [FUNCIÓN MODIFICADA]
 async function loadDataFromDrive() {
     const {
         loginMethod
@@ -245,7 +239,6 @@ async function loadDataFromDrive() {
         return;
     }
 
-    // Función interna para realizar la operación de carga
     const executeLoad = async () => {
         showNotification("Buscando datos en la nube...");
         const folderId = await findOrCreateAppFolder();
@@ -265,7 +258,7 @@ async function loadDataFromDrive() {
             alt: 'media'
         });
         const cloudData = JSON.parse(dataResponse.body);
-        const localData = getUnifiedData();
+        const localData = await getUnifiedData();
         const differences = findDifferences(localData, cloudData);
 
         if (!differences.hasDifferences) {
@@ -273,10 +266,10 @@ async function loadDataFromDrive() {
             return;
         }
 
-        showConflictModal(localData, cloudData, differences, (dataToRestore) => {
-            if (applyRestoredData(dataToRestore)) {
+        showConflictModal(localData, cloudData, differences, async (dataToRestore) => {
+            if (await applyRestoredData(dataToRestore)) {
                 const savedUser = dataToRestore.globalSettings.userProfile;
-                proceedToMainContent({
+                await proceedToMainContent({
                     isLogin: true,
                     username: savedUser.username,
                     pfp: savedUser.pfp,
@@ -303,7 +296,7 @@ async function loadDataFromDrive() {
                 showNotification("Sesión expirada. Renueva el permiso...", false);
                 await forceGoogleReauth();
                 showNotification("Sesión renovada. Reintentando...", false);
-                await executeLoad(); // Reintentar
+                await executeLoad();
             } catch (retryErr) {
                 console.error("Re-authentication or retry failed:", retryErr);
                 showModalAlert("No se pudo renovar tu sesión con Google o la operación falló de nuevo. Por favor, inténtalo más tarde.", "Error de Sesión");
@@ -328,11 +321,9 @@ function findDifferences(localData, cloudData) {
     };
 }
 
-
-// --- Lógica de Backup Local ---
-function exportLocalData() {
+async function exportLocalData() {
     try {
-        const data = getUnifiedData();
+        const data = await getUnifiedData();
         const dataString = JSON.stringify(data, null, 2);
         const blob = new Blob(["\uFEFF" + dataString], {
             type: 'application/json;charset=utf-8'
@@ -362,7 +353,7 @@ function importLocalData() {
         if (!file) return;
 
         const reader = new FileReader();
-        reader.onload = readerEvent => {
+        reader.onload = async (readerEvent) => {
             try {
                 const content = readerEvent.target.result;
                 const importedData = JSON.parse(content);
@@ -370,14 +361,14 @@ function importLocalData() {
                 if (importedData && importedData.globalSettings && importedData.myTime) {
                     const {
                         showConfirmationModal
-                    } = import('./ui.js');
+                    } = await import('./ui.js');
                     showConfirmationModal(
                         'Confirmar Importación',
                         'Los datos importados reemplazarán tus datos actuales. ¿Estás seguro de que quieres continuar?',
-                        () => {
-                            if (applyRestoredData(importedData)) {
+                        async () => {
+                            if (await applyRestoredData(importedData)) {
                                 const savedUser = importedData.globalSettings.userProfile;
-                                proceedToMainContent({
+                                await proceedToMainContent({
                                     isLogin: true,
                                     username: savedUser.username,
                                     pfp: savedUser.pfp,
