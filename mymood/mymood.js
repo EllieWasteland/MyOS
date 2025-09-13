@@ -1,4 +1,3 @@
-// Importamos las funciones del data-manager centralizado
 import { getUnifiedData, saveUnifiedData } from '../data-manager.js';
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -50,24 +49,22 @@ document.addEventListener('DOMContentLoaded', () => {
     let calendarDate = new Date();
     let moodChart;
 
-    // --- DATA MANAGEMENT FUNCTIONS (INTEGRATED AND CORRECTED) ---
-    const loadMoodData = () => {
-        const unifiedData = getUnifiedData();
-        // CORRECCIÓN: Leemos directamente del array myMood
+    // --- DATA MANAGEMENT FUNCTIONS ---
+    async function loadMoodData() {
+        const unifiedData = await getUnifiedData();
         moodEntries = unifiedData.myMood || [];
     };
 
-    const saveMoodData = () => {
-        const unifiedData = getUnifiedData();
-        // CORRECCIÓN: Guardamos el array completo en myMood
+    async function saveMoodData() {
+        const unifiedData = await getUnifiedData();
         unifiedData.myMood = moodEntries;
-        saveUnifiedData(unifiedData);
+        await saveUnifiedData(unifiedData);
     };
 
     // --- UI AND RENDERING FUNCTIONS ---
-    const applyWallpaper = () => {
+    async function applyWallpaper() {
         try {
-            const osData = getUnifiedData();
+            const osData = await getUnifiedData();
             const wallpaper = osData?.myTime?.wallpaper;
             if (wallpaper) {
                 appBackground.style.backgroundImage = `url(${wallpaper})`;
@@ -211,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     };
 
-
     const renderCalendar = () => {
         const dayNamesContainer = document.createDocumentFragment();
         ['D', 'L', 'M', 'M', 'J', 'V', 'S'].forEach(day => {
@@ -324,7 +320,7 @@ document.addEventListener('DOMContentLoaded', () => {
         moodDetails.classList.remove('hidden');
     };
 
-    const handleSaveMood = () => {
+    const handleSaveMood = async () => {
         if (!selectedMoodId) return;
         const newEntry = {
             id: `mood_${Date.now()}`,
@@ -333,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
             timestamp: new Date().toISOString(),
         };
         moodEntries.push(newEntry);
-        saveMoodData();
+        await saveMoodData();
         
         selectedMoodId = null;
         moodNotes.value = '';
@@ -344,9 +340,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // --- INITIALIZATION ---
-    const init = () => {
-        loadMoodData();
-        applyWallpaper();
+    const init = async () => {
+        await loadMoodData();
+        await applyWallpaper();
         motivationalQuote.textContent = QUOTES[Math.floor(Math.random() * QUOTES.length)];
         renderMoodSelector();
         
