@@ -1,5 +1,4 @@
 // --- Módulo Principal de Inicialización ---
-// [MODIFICADO] Rutas de importación ajustadas a una estructura plana
 import {
     getUnifiedData
 } from './data.js';
@@ -32,7 +31,6 @@ import {
 } from './search.js';
 
 /**
- * [NUEVO]
  * Función de utilidad para cargar scripts dinámicamente.
  * Se usará para cargar la librería idb-keyval.
  */
@@ -48,15 +46,15 @@ function loadScript(src) {
 }
 
 
-document.addEventListener('DOMContentLoaded', async () => { // [MODIFICADO] Callback ahora asíncrono
+document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // [NUEVO] Cargar la librería idb-keyval desde un CDN antes de que la app la necesite.
+        // Cargar la librería idb-keyval desde un CDN antes de que la app la necesite.
         await loadScript('https://cdn.jsdelivr.net/npm/idb-keyval@6/dist/umd.js');
 
         // Definir una función global para notificaciones
         window.showGlobalNotification = showNotification;
 
-        // [MODIFICADO] Obtener los datos iniciales de forma asíncrona
+        // Obtener los datos iniciales de forma asíncrona
         const initialData = await getUnifiedData();
 
         // Inicializar todos los módulos

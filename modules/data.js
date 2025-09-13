@@ -52,6 +52,7 @@ function getDefaultUnifiedState() {
         },
         myMood: [],
         globalSettings: {
+            GemApi: null,
             onboardingComplete: false,
             externalApps: [],
             shortcuts: [],

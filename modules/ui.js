@@ -54,6 +54,58 @@ export function showModalAlert(message, title = 'Notificación') {
     });
 }
 
+export function showInputModal(title, message, placeholder, onConfirm) {
+    const genericModal = document.getElementById('generic-modal');
+    document.getElementById('generic-modal-title').textContent = title;
+    document.getElementById('generic-modal-text').innerHTML = `
+        <p class="text-gray-600 my-2 text-sm">${message}</p>
+        <input id="modal-input-field" type="text" placeholder="${placeholder}" class="w-full bg-black/10 border border-pink-200 rounded-lg py-2 px-3 focus:outline-none focus:ring-2 focus:ring-pink-400 text-gray-700 mt-4">
+    `;
+    document.getElementById('generic-modal-buttons').innerHTML = `
+        <div class="flex gap-4">
+            <button id="modal-confirm-action" class="px-6 py-2 bg-pink-500 text-white rounded-full hover:bg-pink-600 transition">Guardar</button>
+            <button id="modal-cancel-action" class="px-6 py-2 bg-gray-300 text-gray-800 rounded-full hover:bg-gray-400 transition">Cancelar</button>
+        </div>`;
+    genericModal.style.display = 'flex';
+    const inputField = document.getElementById('modal-input-field');
+    inputField.focus();
+
+    const confirmHandler = () => {
+        const input = inputField.value.trim();
+        if (input) {
+            onConfirm(input);
+            cleanup();
+        } else {
+             showNotification('El campo no puede estar vacío.', true);
+        }
+    };
+    
+    const cancelHandler = () => {
+        cleanup();
+    };
+
+    const keydownHandler = (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            confirmHandler();
+        }
+    };
+
+    const confirmButton = document.getElementById('modal-confirm-action');
+    const cancelButton = document.getElementById('modal-cancel-action');
+
+    confirmButton.addEventListener('click', confirmHandler);
+    cancelButton.addEventListener('click', cancelHandler);
+    inputField.addEventListener('keydown', keydownHandler);
+    
+    function cleanup() {
+        confirmButton.removeEventListener('click', confirmHandler);
+        cancelButton.removeEventListener('click', cancelHandler);
+        inputField.removeEventListener('keydown', keydownHandler);
+        genericModal.style.display = 'none';
+    }
+}
+
 
 export function showConfirmationModal(title, message, onConfirm) {
     const genericModal = document.getElementById('generic-modal');
