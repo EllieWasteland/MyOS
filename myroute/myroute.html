@@ -16,10 +16,10 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Google Fonts: Nunito -->
+    <!-- Google Fonts: Nunito & Mono -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
 
     <!-- Hoja de estilos local -->
     <link rel="stylesheet" href="myroute.css">
@@ -49,7 +49,7 @@
 
     <!-- Panel de estadísticas de grabación -->
     <div id="recording-stats-panel" class="bottom-panel fixed bottom-0 left-0 right-0 p-4 z-10">
-        <div class="stat-pill p-2 flex items-center justify-between rounded-2xl backdrop-blur-md">
+        <div id="stats-bar-toggle" class="stat-pill p-2 flex items-center justify-between rounded-2xl backdrop-blur-md cursor-pointer">
             <div class="flex-1 text-center">
                 <p class="text-xs text-secondary">Tiempo</p>
                 <p id="stat-time" class="text-lg font-bold">00:00:00</p>
@@ -67,6 +67,31 @@
             <button id="pause-resume-btn" class="btn-secondary text-2xl w-16 h-16 rounded-full shadow-lg flex items-center justify-center"><i class="ph-fill ph-pause"></i></button>
             <button id="stop-btn" class="btn-stop text-2xl w-20 h-20 rounded-full shadow-lg flex items-center justify-center"><i class="ph-fill ph-stop"></i></button>
             <div class="w-16 h-16"></div> <!-- Espaciador -->
+        </div>
+    </div>
+    
+    <!-- Driving Mode Dashboard -->
+    <div id="driving-mode-dashboard" class="fixed inset-0 bg-bg-primary z-20 flex flex-col items-center justify-center p-8 transition-opacity duration-300 opacity-0 pointer-events-none">
+        <!-- Main Speed Display -->
+        <div class="text-center">
+            <p id="driving-mode-speed" class="font-mono font-bold" style="font-size: 10rem; line-height: 1;">0</p>
+            <p class="text-2xl text-secondary -mt-2">km/h</p>
+        </div>
+    
+        <!-- Secondary Stats -->
+        <div class="grid grid-cols-3 gap-8 md:gap-16 mt-12 w-full max-w-2xl text-center">
+            <div>
+                <p class="text-lg text-secondary">Tiempo</p>
+                <p id="driving-mode-time" class="text-4xl font-bold">00:00:00</p>
+            </div>
+            <div>
+                <p class="text-lg text-secondary">Distancia</p>
+                <p id="driving-mode-distance" class="text-4xl font-bold">0.00 <span class="text-2xl">km</span></p>
+            </div>
+            <div>
+                <p class="text-lg text-secondary">Velocidad Máx</p>
+                <p id="driving-mode-max-speed" class="text-4xl font-bold">0.0 <span class="text-2xl">km/h</span></p>
+            </div>
         </div>
     </div>
 
