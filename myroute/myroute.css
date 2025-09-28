@@ -31,13 +31,11 @@ body {
     color: var(--text-primary);
     transition: background-color 0.3s, color 0.3s;
 }
-.font-mono {
-    font-family: 'Roboto Mono', monospace;
-}
 
 #map {
     height: 100%;
     width: 100%;
+    transition: opacity 0.5s ease;
 }
 
 /* Filtro para el mapa en tema oscuro */
@@ -90,7 +88,7 @@ body.theme-dark #map {
 
 .bottom-panel {
     transform: translateY(120%);
-    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s;
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.4s ease;
     background: linear-gradient(180deg, rgba(0,0,0,0) 0%, var(--bg-primary) 40%);
     pointer-events: none; /* No interactuable cuando está oculto */
 }
@@ -99,36 +97,35 @@ body.theme-dark #map {
     pointer-events: auto; /* Interactuable cuando está visible */
 }
 
+#top-right-buttons {
+    transition: opacity 0.4s ease;
+}
+
 .stat-pill {
     background-color: var(--glass-bg);
     border: 1px solid var(--glass-border);
     backdrop-filter: blur(10px);
     -webkit-backdrop-filter: blur(10px);
-    transition: background-color 0.3s, border-color 0.3s;
 }
 
-/* --- Driving Mode --- */
-#driving-mode-dashboard.active {
+
+/* --- Modo de Conducción --- */
+#driving-mode-panel {
+    transition: opacity 0.5s ease;
+}
+
+#driving-mode-panel.active {
     opacity: 1;
     pointer-events: auto;
 }
 
-/* Clase para ocultar elementos cuando el modo conducción está activo */
-.driving-mode-active #map,
-.driving-mode-active .fixed.top-5, /* Oculta botones superiores */
-.driving-mode-active #recording-stats-panel .flex.justify-center /* Oculta botones inferiores de pausa/stop */ {
+/* Ocultar mapa cuando el modo conducción está activo */
+#map.hidden-by-drive-mode {
     opacity: 0;
     pointer-events: none;
-    transition: opacity 0.3s ease;
 }
 
-/* El panel de stats se mantiene visible pero sin fondo para poder salir */
-.driving-mode-active #recording-stats-panel {
-    background: transparent;
-}
-.driving-mode-active #stats-bar-toggle {
-    background-color: transparent;
-    border: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+/* Estilo para los números en el modo conducción para evitar que salten */
+#driving-mode-panel p {
+    font-variant-numeric: tabular-nums;
 }

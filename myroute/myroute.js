@@ -12,12 +12,6 @@ document.addEventListener('DOMContentLoaded', () => {
         initialControls: getEl('initial-controls'),
         startRecordBtn: getEl('start-record-btn'),
         recordingStatsPanel: getEl('recording-stats-panel'),
-        statsBarToggle: getEl('stats-bar-toggle'),
-        drivingModeDashboard: getEl('driving-mode-dashboard'),
-        drivingModeSpeed: getEl('driving-mode-speed'),
-        drivingModeTime: getEl('driving-mode-time'),
-        drivingModeDistance: getEl('driving-mode-distance'),
-        drivingModeMaxSpeed: getEl('driving-mode-max-speed'),
         statTime: getEl('stat-time'),
         statDistance: getEl('stat-distance'),
         statCurrentSpeed: getEl('stat-current-speed'),
@@ -42,11 +36,19 @@ document.addEventListener('DOMContentLoaded', () => {
         detailsRouteDuration: getEl('details-route-duration'),
         closeDetailsBtn: getEl('close-details-btn'),
         recenterBtn: getEl('recenter-btn'),
+        topRightButtons: getEl('top-right-buttons'),
         preloadMapBtn: getEl('preload-map-btn'),
         preloadOverlay: getEl('preload-overlay'),
         apiKeyModal: getEl('api-key-modal'),
         apiKeyInput: getEl('api-key-input'),
         saveApiKeyBtn: getEl('save-api-key-btn'),
+        // Elementos del Modo Conducción
+        drivingModePanel: getEl('driving-mode-panel'),
+        driveModeSpeed: getEl('drive-mode-speed'),
+        driveModeMaxSpeed: getEl('drive-mode-max-speed'),
+        driveModeDistance: getEl('drive-mode-distance'),
+        driveModeTime: getEl('drive-mode-time'),
+        driveModeStopBtn: getEl('drive-mode-stop-btn'),
     };
 
     // --- Estado Global de la Aplicación ---
@@ -54,8 +56,8 @@ document.addEventListener('DOMContentLoaded', () => {
         isRecording: false,
         isPaused: false,
         isDynamicCameraActive: false,
-        isDrivingModeActive: false,
         isPreloading: false,
+        isDrivingModeActive: false,
         map: null,
         userMarker: null,
         lastKnownPosition: null,
@@ -109,36 +111,38 @@ document.addEventListener('DOMContentLoaded', () => {
                 DOMElements.preloadOverlay.classList.toggle('hidden', !show);
             }
         },
-        toggleDrivingMode: (show) => {
-            appState.isDrivingModeActive = show;
-            DOMElements.body.classList.toggle('driving-mode-active', show);
-            DOMElements.drivingModeDashboard.classList.toggle('active', show);
-            if (show) {
-                ui.updateDrivingModeStats(); // Update stats immediately on show
-            }
-        },
-        updateDrivingModeStats: () => {
-            if (!appState.isDrivingModeActive) return;
-
-            const now = appState.isPaused ? appState.pausedTime : Date.now();
-            const elapsedTime = now - appState.startTime - appState.totalPausedTime;
-            DOMElements.drivingModeTime.textContent = util.formatTime(elapsedTime);
-
-            const distanceKm = util.calculateTotalDistance(appState.route.coords);
-            DOMElements.drivingModeDistance.innerHTML = `${distanceKm.toFixed(2)} <span class="text-2xl">km</span>`;
-            
-            DOMElements.drivingModeMaxSpeed.innerHTML = `${(appState.maxSpeed * 3.6).toFixed(1)} <span class="text-2xl">km/h</span>`;
-        },
         updateRecordingStats: () => {
             const now = appState.isPaused ? appState.pausedTime : Date.now();
             const elapsedTime = now - appState.startTime - appState.totalPausedTime;
-            DOMElements.statTime.textContent = util.formatTime(elapsedTime);
-            DOMElements.statDistance.textContent = util.calculateTotalDistance(appState.route.coords).toFixed(2);
-            DOMElements.statCurrentSpeed.textContent = (appState.currentSpeed * 3.6).toFixed(1);
+            const distance = util.calculateTotalDistance(appState.route.coords);
+            const currentSpeedKmh = (appState.currentSpeed * 3.6);
+            const maxSpeedKmh = (appState.maxSpeed * 3.6).toFixed(1);
+            const formattedTime = util.formatTime(elapsedTime);
 
-            if (appState.isDrivingModeActive) {
-                ui.updateDrivingModeStats();
-            }
+            // Update bottom stats bar
+            DOMElements.statTime.textContent = formattedTime;
+            DOMElements.statDistance.textContent = distance.toFixed(2);
+            DOMElements.statCurrentSpeed.textContent = currentSpeedKmh.toFixed(1);
+
+            // Update driving mode panel
+            DOMElements.driveModeSpeed.textContent = Math.round(currentSpeedKmh);
+            DOMElements.driveModeMaxSpeed.textContent = maxSpeedKmh;
+            DOMElements.driveModeDistance.textContent = distance.toFixed(2);
+            DOMElements.driveModeTime.textContent = formattedTime.substring(0, 5); // HH:MM
+        },
+        toggleDrivingMode: () => {
+            appState.isDrivingModeActive = !appState.isDrivingModeActive;
+            const isActive = appState.isDrivingModeActive;
+            
+            DOMElements.drivingModePanel.classList.toggle('active', isActive);
+            DOMElements.map.classList.toggle('hidden-by-drive-mode', isActive);
+            
+            // Oculta otros elementos de la UI para una vista limpia
+            DOMElements.topRightButtons.classList.toggle('opacity-0', isActive);
+            DOMElements.topRightButtons.classList.toggle('pointer-events-none', isActive);
+            // La barra de estadísticas de abajo también se oculta
+            DOMElements.recordingStatsPanel.classList.toggle('opacity-0', isActive);
+            DOMElements.recordingStatsPanel.classList.toggle('pointer-events-none', isActive);
         },
         renderRoutesList: async () => {
             const data = await getUnifiedData();
@@ -184,7 +188,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
                 const styleUrl = `https://api.maptiler.com/maps/streets-v2/style.json?key=${apiKey}`;
                 appState.map = new maplibregl.Map({
-                    container: 'map', style: styleUrl, center: [-79.004, -2.900], zoom: 13, pitch: 0, attributionControl: false
+                    container: 'map',
+                    style: styleUrl,
+                    center: [-79.004, -2.900],
+                    zoom: 13,
+                    pitch: 0,
+                    attributionControl: false
                 });
                 appState.map.on('load', async () => {
                     mapLogic.setupMapLayers();
@@ -228,16 +237,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     appState.lastKnownPosition = pos;
                     const { latitude, longitude, speed, heading } = pos.coords;
                     appState.currentSpeed = speed || 0;
-                    
-                    if (appState.isRecording && appState.currentSpeed > appState.maxSpeed) {
+                    if (appState.currentSpeed > appState.maxSpeed) {
                         appState.maxSpeed = appState.currentSpeed;
                     }
-
-                    if (appState.isDrivingModeActive) {
-                        DOMElements.drivingModeSpeed.textContent = (appState.currentSpeed * 3.6).toFixed(0);
-                    }
-
                     const lngLat = [longitude, latitude];
+                    
                     appState.userMarker.setLngLat(lngLat);
                     const currentBearing = heading ?? appState.lastBearing;
                     appState.userMarker.setRotation(currentBearing);
@@ -290,29 +294,25 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         },
         preloadMapArea: async () => {
-            if (!appState.lastKnownPosition) {
-                return ui.showStatus('Espera a tener una señal de GPS estable.', 2000);
-            }
+            if (!appState.lastKnownPosition) return ui.showStatus('Espera a tener una señal de GPS estable.', 2000);
             if (appState.isPreloading) return;
-
             appState.isPreloading = true;
             ui.togglePreloadOverlay(true);
             ui.showStatus('Pre-cargando mapa...', 0);
-
             const center = appState.lastKnownPosition.coords;
             const zoom = 14; const areaSizeKm = 30; const steps = 6;
             const kmPerDegree = 111.32;
             const latOffset = (areaSizeKm / 2) / kmPerDegree;
             const lonOffset = (areaSizeKm / 2) / (kmPerDegree * Math.cos(center.latitude * Math.PI / 180));
-            const minLat = center.latitude - latOffset, maxLat = center.latitude + latOffset;
-            const minLon = center.longitude - lonOffset, maxLon = center.longitude + lonOffset;
-            const latStep = (maxLat - minLat) / (steps - 1), lonStep = (maxLon - minLon) / (steps - 1);
-
+            const minLat = center.latitude - latOffset; const maxLat = center.latitude + latOffset;
+            const minLon = center.longitude - lonOffset; const maxLon = center.longitude + lonOffset;
+            const latStep = (maxLat - minLat) / (steps - 1); const lonStep = (maxLon - minLon) / (steps - 1);
             await appState.map.flyTo({ center: [center.longitude, center.latitude], zoom: zoom, duration: 1000 });
             await new Promise(resolve => setTimeout(resolve, 1000));
             for (let i = 0; i < steps; i++) {
                 for (let j = 0; j < steps; j++) {
-                    appState.map.panTo([minLon + j * lonStep, minLat + i * latStep], { duration: 250 });
+                    const lat = minLat + i * latStep; const lon = minLon + j * lonStep;
+                    appState.map.panTo([lon, lat], { duration: 250 });
                     await new Promise(resolve => setTimeout(resolve, 250));
                 }
             }
@@ -343,19 +343,16 @@ document.addEventListener('DOMContentLoaded', () => {
             appState.isPaused = false;
             appState.startTime = Date.now();
             appState.totalPausedTime = 0;
-            appState.maxSpeed = 0;
-            ui.toggleDrivingMode(false);
+            appState.maxSpeed = 0; // Reset max speed
             const { longitude, latitude } = appState.lastKnownPosition.coords;
             appState.route = { id: Date.now(), coords: [[longitude, latitude]] };
             ui.showPanel(DOMElements.recordingStatsPanel, true);
             mapLogic.clearRouteLine('viewing');
             appState.timerId = setInterval(ui.updateRecordingStats, 1000);
-            
             mapLogic.recenterMap();
-
             if (appState.recenterIntervalId) clearInterval(appState.recenterIntervalId);
             appState.recenterIntervalId = setInterval(() => {
-                if (!appState.isPaused && !appState.isDrivingModeActive) {
+                if (!appState.isPaused) {
                     mapLogic.silentRecenter();
                 }
             }, 2000);
@@ -376,7 +373,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 appState.recenterIntervalId = null;
             }
             clearInterval(appState.timerId);
-            ui.toggleDrivingMode(false);
             appState.isDynamicCameraActive = false;
             appState.map.easeTo({ pitch: 0, bearing: 0, duration: 1000 });
             if (appState.route.coords.length < 2) {
@@ -388,35 +384,28 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         save: async (name) => {
             const data = await getUnifiedData();
-            
             const routeData = {
-                id: appState.route.id,
-                name: name,
-                date: new Date(appState.startTime).toISOString(),
+                id: appState.route.id, name: name, date: new Date(appState.startTime).toISOString(),
                 durationMs: Date.now() - appState.startTime - appState.totalPausedTime,
                 distance: util.calculateTotalDistance(appState.route.coords),
                 path: JSON.stringify(appState.route.coords)
             };
-
             data.myRoute.routes.push(routeData);
             await saveUnifiedData(data);
             ui.showStatus('Ruta guardada con éxito', 2000);
             recording.reset();
         },
-        discard: () => {
-            ui.toggleDrivingMode(false);
-            recording.reset()
-        },
+        discard: () => recording.reset(),
         reset: () => {
+            if (appState.isDrivingModeActive) {
+                ui.toggleDrivingMode(); // Desactiva el modo conducción
+            }
             if (appState.recenterIntervalId) {
                 clearInterval(appState.recenterIntervalId);
                 appState.recenterIntervalId = null;
             }
-            ui.toggleDrivingMode(false);
-            appState.isRecording = false;
-            appState.isPaused = false;
-            appState.isDynamicCameraActive = false;
-            appState.route = { coords: [] };
+            appState.isRecording = false; appState.isPaused = false;
+            appState.isDynamicCameraActive = false; appState.route = { coords: [] };
             DOMElements.pauseResumeBtn.innerHTML = '<i class="ph-fill ph-pause"></i>';
             ui.toggleModal(DOMElements.saveModal, false);
             ui.showPanel(DOMElements.initialControls, true);
@@ -445,14 +434,13 @@ document.addEventListener('DOMContentLoaded', () => {
         },
         calculateTotalDistance: (coords) => coords.reduce((d, _, i, a) => i > 0 ? d + util.haversineDistance(a[i - 1], a[i]) : 0, 0),
         calculateBearing: (p1, p2) => {
-            const [lon1, lat1] = p1; const [lon2, lat2] = p2;
-            const toRad = (deg) => deg * Math.PI / 180;
+            const [lon1, lat1] = p1; const [lon2, lat2] = p2; const toRad = (deg) => deg * Math.PI / 180;
             const y = Math.sin(toRad(lon2 - lon1)) * Math.cos(toRad(lat2));
             const x = Math.cos(toRad(lat1)) * Math.sin(toRad(lat2)) - Math.sin(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.cos(toRad(lon2 - lon1));
             return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
         },
-        mapValue: (value, in_min, in_max, out_min, out_max) => (value - in_min) * (out_max - out_min) / (in_max - in_min) + out_min,
-        clamp: (value, min, max) => Math.max(min, Math.min(value, max)),
+        mapValue: (v, im, iM, om, oM) => (v - im) * (oM - om) / (iM - im) + om,
+        clamp: (v, min, max) => Math.max(min, Math.min(v, max)),
     };
     
     // --- Vinculación de Eventos ---
@@ -483,34 +471,28 @@ document.addEventListener('DOMContentLoaded', () => {
                 ui.showRouteDetails(viewBtn.closest('.route-item').dataset.routeId);
                 ui.toggleSidePanel(DOMElements.routesPanel, false);
             }
-            if (deleteBtn) {
-                recording.delete(deleteBtn.dataset.id);
-            }
+            if (deleteBtn) recording.delete(deleteBtn.dataset.id);
         });
         DOMElements.closeDetailsBtn.onclick = ui.hideRouteDetails;
         DOMElements.recenterBtn.onclick = mapLogic.recenterMap;
-        if (DOMElements.preloadMapBtn) {
-            DOMElements.preloadMapBtn.onclick = mapLogic.preloadMapArea;
-        }
-
-        DOMElements.statsBarToggle.onclick = () => {
-            if (appState.isRecording) {
-                ui.toggleDrivingMode(!appState.isDrivingModeActive);
-            }
-        };
-
+        if (DOMElements.preloadMapBtn) DOMElements.preloadMapBtn.onclick = mapLogic.preloadMapArea;
         DOMElements.saveApiKeyBtn.onclick = async () => {
             const apiKey = DOMElements.apiKeyInput.value.trim();
-            if (!apiKey) {
-                ui.showStatus('Por favor, introduce una API key válida.');
-                return;
-            }
+            if (!apiKey) return ui.showStatus('Por favor, introduce una API key válida.');
             const data = await getUnifiedData();
             if (!data.myRoute.settings) data.myRoute.settings = {};
             data.myRoute.settings.apiKey = apiKey;
             await saveUnifiedData(data);
             ui.toggleModal(DOMElements.apiKeyModal, false);
             await mapLogic.initialize(apiKey);
+        };
+
+        // Eventos para el Modo Conducción
+        DOMElements.recordingStatsPanel.onclick = ui.toggleDrivingMode;
+        DOMElements.driveModeStopBtn.onclick = recording.stop;
+        DOMElements.drivingModePanel.onclick = (e) => {
+            if (e.target.closest('#drive-mode-stop-btn')) return;
+            ui.toggleDrivingMode();
         };
     };
 

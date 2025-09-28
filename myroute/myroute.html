@@ -16,10 +16,10 @@
     <!-- Phosphor Icons -->
     <script src="https://unpkg.com/@phosphor-icons/web"></script>
 
-    <!-- Google Fonts: Nunito & Mono -->
+    <!-- Google Fonts: Nunito -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&family=Roboto+Mono:wght@700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap" rel="stylesheet">
 
     <!-- Hoja de estilos local -->
     <link rel="stylesheet" href="myroute.css">
@@ -33,6 +33,42 @@
 
     <!-- Contenedor principal del mapa -->
     <div id="map" class="flex-grow"></div>
+
+    <!-- Modo de Conducción (Dashboard) -->
+    <div id="driving-mode-panel" class="fixed inset-0 bg-bg-primary z-20 flex flex-col items-center justify-between p-8 text-center opacity-0 pointer-events-none">
+        <!-- Espaciador superior -->
+        <div></div>
+
+        <!-- Bloque central de velocidad y stats -->
+        <div class="flex flex-col items-center">
+            <!-- Velocidad Principal -->
+            <div class="relative flex flex-col items-center justify-center">
+                <p id="drive-mode-speed" class="text-9xl md:text-[12rem] font-bold leading-none">0</p>
+                <p class="text-2xl md:text-3xl text-secondary font-light mt-2">km/h</p>
+            </div>
+
+            <!-- Stats Secundarias -->
+            <div class="grid grid-cols-3 gap-4 md:gap-8 w-full max-w-md mt-16">
+                <div>
+                    <p class="text-base md:text-lg text-secondary">Vel. Máx</p>
+                    <p id="drive-mode-max-speed" class="text-3xl md:text-4xl font-semibold mt-1">0.0</p>
+                </div>
+                <div>
+                    <p class="text-base md:text-lg text-secondary">Distancia</p>
+                    <p id="drive-mode-distance" class="text-3xl md:text-4xl font-semibold mt-1">0.00</p>
+                </div>
+                <div>
+                    <p class="text-base md:text-lg text-secondary">Tiempo</p>
+                    <p id="drive-mode-time" class="text-3xl md:text-4xl font-semibold mt-1">00:00</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón de Parar -->
+        <div class="mb-4">
+             <button id="drive-mode-stop-btn" class="btn-stop text-2xl w-20 h-20 rounded-full shadow-lg flex items-center justify-center"><i class="ph-fill ph-stop"></i></button>
+        </div>
+    </div>
 
     <!-- Overlay de estado -->
     <div id="status-overlay" class="fixed top-5 left-1/2 -translate-x-1/2 bg-black bg-opacity-70 text-white text-sm rounded-full px-4 py-2 z-20 opacity-0 transition-opacity duration-300">
@@ -48,8 +84,8 @@
     </div>
 
     <!-- Panel de estadísticas de grabación -->
-    <div id="recording-stats-panel" class="bottom-panel fixed bottom-0 left-0 right-0 p-4 z-10">
-        <div id="stats-bar-toggle" class="stat-pill p-2 flex items-center justify-between rounded-2xl backdrop-blur-md cursor-pointer">
+    <div id="recording-stats-panel" class="bottom-panel fixed bottom-0 left-0 right-0 p-4 z-10 cursor-pointer">
+        <div class="stat-pill p-2 flex items-center justify-between rounded-2xl backdrop-blur-md">
             <div class="flex-1 text-center">
                 <p class="text-xs text-secondary">Tiempo</p>
                 <p id="stat-time" class="text-lg font-bold">00:00:00</p>
@@ -67,31 +103,6 @@
             <button id="pause-resume-btn" class="btn-secondary text-2xl w-16 h-16 rounded-full shadow-lg flex items-center justify-center"><i class="ph-fill ph-pause"></i></button>
             <button id="stop-btn" class="btn-stop text-2xl w-20 h-20 rounded-full shadow-lg flex items-center justify-center"><i class="ph-fill ph-stop"></i></button>
             <div class="w-16 h-16"></div> <!-- Espaciador -->
-        </div>
-    </div>
-    
-    <!-- Driving Mode Dashboard -->
-    <div id="driving-mode-dashboard" class="fixed inset-0 bg-bg-primary z-20 flex flex-col items-center justify-center p-8 transition-opacity duration-300 opacity-0 pointer-events-none">
-        <!-- Main Speed Display -->
-        <div class="text-center">
-            <p id="driving-mode-speed" class="font-mono font-bold" style="font-size: 10rem; line-height: 1;">0</p>
-            <p class="text-2xl text-secondary -mt-2">km/h</p>
-        </div>
-    
-        <!-- Secondary Stats -->
-        <div class="grid grid-cols-3 gap-8 md:gap-16 mt-12 w-full max-w-2xl text-center">
-            <div>
-                <p class="text-lg text-secondary">Tiempo</p>
-                <p id="driving-mode-time" class="text-4xl font-bold">00:00:00</p>
-            </div>
-            <div>
-                <p class="text-lg text-secondary">Distancia</p>
-                <p id="driving-mode-distance" class="text-4xl font-bold">0.00 <span class="text-2xl">km</span></p>
-            </div>
-            <div>
-                <p class="text-lg text-secondary">Velocidad Máx</p>
-                <p id="driving-mode-max-speed" class="text-4xl font-bold">0.0 <span class="text-2xl">km/h</span></p>
-            </div>
         </div>
     </div>
 
@@ -119,7 +130,7 @@
     </div>
 
     <!-- Botones flotantes superiores -->
-    <div class="fixed top-5 right-5 z-10 flex flex-col gap-3">
+    <div id="top-right-buttons" class="fixed top-5 right-5 z-10 flex flex-col gap-3">
         <!-- BOTÓN PARA CENTRAR EL MAPA -->
         <button id="recenter-btn" class="btn-secondary w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl"><i class="ph ph-crosshair"></i></button>
         <button id="routes-btn" class="btn-secondary w-12 h-12 rounded-full shadow-lg flex items-center justify-center text-xl"><i class="ph ph-list"></i></button>
