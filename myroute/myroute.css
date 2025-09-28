@@ -129,3 +129,61 @@ body.theme-dark #map {
 #driving-mode-panel p {
     font-variant-numeric: tabular-nums;
 }
+
+/* --- ESTILOS RESPONSIVOS PARA MODO HORIZONTAL --- */
+@media (orientation: landscape) and (max-height: 550px) {
+    #driving-mode-panel {
+        flex-direction: row;
+        justify-content: space-evenly;
+        align-items: center;
+        padding: 1rem;
+        gap: 1rem;
+    }
+
+    /* Contenedor central de stats (agrupa velocidad y la rejilla) */
+    #driving-mode-panel > .flex-col {
+       flex-grow: 1;
+       justify-content: center;
+       height: 100%;
+    }
+    
+    /* Velocidad principal */
+    #drive-mode-speed {
+        font-size: 7rem; /* Reducir tamaño para que quepa */
+        line-height: 1;
+    }
+    
+    /* Texto "km/h" */
+    #drive-mode-speed + p {
+        font-size: 1.5rem;
+        margin-top: 0;
+    }
+
+    /* Rejilla de stats secundarias */
+    #driving-mode-panel .grid {
+        margin-top: 1rem; /* Reducir margen superior */
+        gap: 1rem;
+    }
+    
+    /* Etiquetas (Vel. Máx, Distancia, etc.) */
+    #driving-mode-panel .grid div p:first-child {
+        font-size: 0.875rem;
+    }
+
+    /* Valores de las stats */
+    #driving-mode-panel .grid div p:last-child {
+        font-size: 1.5rem; /* Reducir tamaño del valor */
+    }
+
+    /* Contenedor del botón de parar */
+    #driving-mode-panel > div:last-child {
+        margin-bottom: 0; /* Eliminar margen inferior */
+        flex-shrink: 0; /* Evitar que el botón se encoja */
+    }
+    
+    #drive-mode-stop-btn {
+        width: 4.5rem;
+        height: 4.5rem;
+    }
+}
+
