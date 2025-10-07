@@ -14,207 +14,242 @@
     <!-- Custom Styles -->
     <link rel="stylesheet" href="mytime.css">
 </head>
-<body class="overflow-hidden">
+<body class="overflow-hidden bg-panel-color-darker">
     <!-- Wallpaper Background -->
     <div id="wallpaper-bg" class="absolute inset-0 w-full h-full bg-cover bg-center transition-opacity duration-1000 z-0"></div>
 
-    <!-- Main wrapper: Padding changed to p-0 md:p-4 to make it full screen on mobile -->
+    <!-- Main app wrapper -->
     <div class="w-full h-screen p-0 md:p-4 box-border flex justify-center items-center relative z-10">
-        <!-- Main container: Added pb-20 sm:pb-0 for nav overlap on mobile -->
-        <main class="w-full h-full max-w-5xl mx-auto main-container flex flex-col lg:flex-row overflow-hidden pb-20 sm:pb-0">
+        <!-- Main container: Now a flex container for the new layout -->
+        <main class="w-full h-full max-w-7xl mx-auto main-container flex overflow-hidden">
             
-            <!-- LIST PANE (Columna Izquierda / Vista Principal Móvil) -->
-            <div id="list-pane" class="w-full lg:w-1/3 h-full flex flex-col transition-transform duration-500 ease-in-out">
-                <div class="relative w-full h-full flex-grow overflow-y-auto">
-                    <div id="app-content" class="absolute inset-0">
-                        <div id="summary-section" class="h-full flex flex-col p-6 overflow-y-auto">
-                            <h1 class="text-3xl font-bold mb-6 text-white">Resumen</h1>
-                            <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4"></div>
-                        </div>
-                        <div id="tasks-section" class="hidden h-full flex flex-col p-6">
-                            <h1 class="text-3xl font-bold mb-6 text-white flex items-center"><span class="material-symbols-outlined mr-3">task_alt</span> Tareas</h1>
-                            <div id="tasks-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
-                        </div>
-                        <div id="projects-section" class="hidden h-full flex flex-col p-6">
-                            <h1 class="text-3xl font-bold mb-6 text-white">Proyectos</h1>
-                            <div id="projects-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
-                        </div>
-                        <div id="shopping-section" class="hidden h-full flex flex-col p-6">
-                            <h1 class="text-3xl font-bold mb-6 text-white">Compras</h1>
-                            <div id="shopping-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
-                        </div>
+            <!-- NEW: Sidebar Navigation -->
+            <aside id="sidebar" class="w-16 md:w-64 bg-black/20 p-2 md:p-4 flex-shrink-0 flex flex-col">
+                <div class="flex items-center gap-3 mb-8 md:mb-12 px-2 md:px-0">
+                    <img src="https://placehold.co/40x40/F97116/FFFFFF?text=M" alt="Logo" class="w-10 h-10 rounded-full">
+                    <div class="hidden md:block">
+                        <h2 class="font-bold text-white text-lg">MyTime</h2>
+                        <p class="text-xs text-gray-400">Tu espacio de trabajo</p>
                     </div>
                 </div>
-                <div id="add-task-container" class="p-4 border-t border-gray-700/50 flex-shrink-0">
-                     <div id="add-task-form-wrapper" class="card p-4 transition-all duration-300">
-                        <form id="add-task-form">
-                            <div class="input-container">
-                                <input type="text" id="task-name-input" placeholder="Escribe una nueva tarea..." class="w-full bg-transparent text-white text-lg focus:outline-none" required>
+
+                <nav class="flex flex-col gap-2 flex-grow">
+                    <button data-section="summary" class="sidebar-button">
+                        <span class="material-symbols-outlined">widgets</span>
+                        <span class="hidden md:inline">Resumen</span>
+                    </button>
+                    <button data-section="tasks" class="sidebar-button">
+                        <span class="material-symbols-outlined">task_alt</span>
+                        <span class="hidden md:inline">Tareas</span>
+                    </button>
+                    <button data-section="projects" class="sidebar-button">
+                        <span class="material-symbols-outlined">folder_special</span>
+                        <span class="hidden md:inline">Proyectos</span>
+                    </button>
+                    <button data-section="shopping" class="sidebar-button">
+                        <span class="material-symbols-outlined">shopping_cart</span>
+                        <span class="hidden md:inline">Compras</span>
+                    </button>
+                </nav>
+
+                <div class="mt-auto hidden md:block">
+                     <div class="bg-primary/10 border border-primary/30 text-primary rounded-lg p-4 text-center">
+                         <h4 class="font-bold">Upgrade a Pro</h4>
+                         <p class="text-xs mt-1">Obtén funciones ilimitadas y soporte exclusivo.</p>
+                         <button class="bg-primary text-white w-full py-2 rounded-md text-sm font-semibold mt-4 hover:bg-orange-600 transition-colors">Actualizar</button>
+                     </div>
+                </div>
+            </aside>
+
+            <!-- Main Content Area -->
+            <div class="flex-grow flex relative overflow-hidden">
+                <!-- LIST PANE (Columna Izquierda / Vista Principal Móvil) -->
+                <div id="list-pane" class="w-full lg:w-1/3 h-full flex flex-col transition-transform duration-500 ease-in-out bg-panel-color-darker">
+                    <div class="relative w-full h-full flex-grow overflow-y-auto">
+                        <div id="app-content" class="absolute inset-0">
+                            <div id="summary-section" class="h-full flex flex-col p-6 overflow-y-auto">
+                                <h1 class="text-3xl font-bold mb-6 text-white">Resumen</h1>
+                                <div id="summary-cards" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-1 gap-4"></div>
                             </div>
-                            <div id="expanded-form">
-                               <div class="wrapper-description border-t border-gray-600/50 pt-3 mt-3">
-                                   <div class="input-container">
-                                       <textarea id="task-description-input" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400" rows="2"></textarea>
+                            <div id="tasks-section" class="hidden h-full flex flex-col p-6">
+                                <h1 class="text-3xl font-bold mb-6 text-white flex items-center"><span class="material-symbols-outlined mr-3">task_alt</span> Tareas</h1>
+                                <div id="tasks-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                            </div>
+                            <div id="projects-section" class="hidden h-full flex flex-col p-6">
+                                <h1 class="text-3xl font-bold mb-6 text-white">Proyectos</h1>
+                                <div id="projects-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                            </div>
+                            <div id="shopping-section" class="hidden h-full flex flex-col p-6">
+                                <h1 class="text-3xl font-bold mb-6 text-white">Compras</h1>
+                                <div id="shopping-list" class="flex-grow pr-2 space-y-4 overflow-y-auto"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="add-task-container" class="p-4 border-t border-gray-700/50 flex-shrink-0">
+                         <div id="add-task-form-wrapper" class="card p-4 transition-all duration-300">
+                            <form id="add-task-form">
+                                <div class="input-container">
+                                    <input type="text" id="task-name-input" placeholder="Escribe una nueva tarea..." class="w-full bg-transparent text-white text-lg focus:outline-none" required>
+                                </div>
+                                <div id="expanded-form">
+                                   <div class="wrapper-description border-t border-gray-600/50 pt-3 mt-3">
+                                       <div class="input-container">
+                                           <textarea id="task-description-input" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400" rows="2"></textarea>
+                                       </div>
                                    </div>
-                               </div>
-                                <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-subtasks">
-                                    <h4 class="text-sm font-semibold text-gray-300 mb-2">Subtareas</h4>
-                                    <div id="subtasks-container" class="space-y-2"></div>
-                                    <div class="flex items-center mt-2">
-                                        <div class="input-container flex-grow">
-                                            <input type="text" id="subtask-input" placeholder="Añadir subtarea" class="w-full bg-transparent text-sm text-gray-400 focus:outline-none">
+                                    <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-subtasks">
+                                        <h4 class="text-sm font-semibold text-gray-300 mb-2">Subtareas</h4>
+                                        <div id="subtasks-container" class="space-y-2"></div>
+                                        <div class="flex items-center mt-2">
+                                            <div class="input-container flex-grow">
+                                                <input type="text" id="subtask-input" placeholder="Añadir subtarea" class="w-full bg-transparent text-sm text-gray-400 focus:outline-none">
+                                            </div>
+                                            <button type="button" id="add-subtask-btn" class="ml-2 text-primary hover:opacity-80"><span class="material-symbols-outlined">add_circle</span></button>
                                         </div>
-                                        <button type="button" id="add-subtask-btn" class="ml-2 text-primary hover:opacity-80"><span class="material-symbols-outlined">add_circle</span></button>
+                                    </div>
+                                    <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-media">
+                                        <h4 class="text-sm font-semibold text-gray-300 mb-2">Medios</h4>
+                                        <div id="image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div><input type="file" id="image-file-input" class="hidden" multiple accept="image/*">
+                                    </div>
+                                    <div class="flex items-center justify-between mt-4 wrapper-options">
+                                        <div class="flex items-center gap-4">
+                                            <button type="button" id="add-photo-btn" class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">add_photo_alternate</span></button>
+                                            <button type="button" id="add-date-btn" class="flex items-center text-gray-400 hover:text-white"><span class="material-symbols-outlined">event</span><span id="date-preview" class="text-sm ml-2 text-primary"></span></button>
+                                            <input type="datetime-local" id="task-due-date" class="hidden">
+                                        </div>
+                                        <div id="color-picker" class="flex gap-2">
+                                            <div class="w-6 h-6 rounded-full bg-red-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(127, 29, 29, 0.2)"></div>
+                                            <div class="w-6 h-6 rounded-full bg-blue-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(30, 58, 138, 0.2)"></div>
+                                            <div class="w-6 h-6 rounded-full bg-green-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(22, 101, 52, 0.2)"></div>
+                                            <div class="w-6 h-6 rounded-full bg-yellow-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(113, 63, 18, 0.2)"></div>
+                                            <div class="w-6 h-6 rounded-full bg-purple-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(91, 33, 182, 0.2)"></div>
+                                        </div>
+                                    </div>
+                                    <div class="flex justify-center items-center gap-6 mt-4 border-t border-gray-700/50 pt-4">
+                                        <button type="button" id="cancel-add-task" class="action-btn-secondary" title="Cancelar">
+                                            <span class="material-symbols-outlined">close</span>
+                                        </button>
+                                        <button type="submit" id="add-item-btn" class="action-btn-primary" title="Añadir">
+                                            <span class="material-symbols-outlined">arrow_upward</span>
+                                        </button>
                                     </div>
                                 </div>
-                                <div class="mt-3 border-t border-gray-600/50 pt-3 wrapper-media">
-                                    <h4 class="text-sm font-semibold text-gray-300 mb-2">Medios</h4>
-                                    <div id="image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div><input type="file" id="image-file-input" class="hidden" multiple accept="image/*">
-                                </div>
-                                <div class="flex items-center justify-between mt-4 wrapper-options">
-                                    <div class="flex items-center gap-4">
-                                        <button type="button" id="add-photo-btn" class="text-gray-400 hover:text-white"><span class="material-symbols-outlined">add_photo_alternate</span></button>
-                                        <button type="button" id="add-date-btn" class="flex items-center text-gray-400 hover:text-white"><span class="material-symbols-outlined">event</span><span id="date-preview" class="text-sm ml-2 text-primary"></span></button>
-                                        <input type="datetime-local" id="task-due-date" class="hidden">
-                                    </div>
-                                    <div id="color-picker" class="flex gap-2">
-                                        <div class="w-6 h-6 rounded-full bg-red-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(127, 29, 29, 0.2)"></div>
-                                        <div class="w-6 h-6 rounded-full bg-blue-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(30, 58, 138, 0.2)"></div>
-                                        <div class="w-6 h-6 rounded-full bg-green-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(22, 101, 52, 0.2)"></div>
-                                        <div class="w-6 h-6 rounded-full bg-yellow-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(113, 63, 18, 0.2)"></div>
-                                        <div class="w-6 h-6 rounded-full bg-purple-900/50 cursor-pointer border-2 border-transparent" data-color-value="rgba(91, 33, 182, 0.2)"></div>
-                                    </div>
-                                </div>
-                                <div class="flex justify-center items-center gap-6 mt-4 border-t border-gray-700/50 pt-4">
-                                    <button type="button" id="cancel-add-task" class="action-btn-secondary" title="Cancelar">
-                                        <span class="material-symbols-outlined">close</span>
-                                    </button>
-                                    <button type="submit" id="add-item-btn" class="action-btn-primary" title="Añadir">
-                                        <span class="material-symbols-outlined">arrow_upward</span>
-                                    </button>
-                                </div>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-
-            <!-- DETAIL PANE (Columna Derecha / Superposición Móvil) -->
-            <div id="detail-pane" class="bg-panel-color-darker absolute lg:relative inset-0 transform lg:transform-none translate-x-full lg:translate-x-0 transition-transform duration-500 ease-in-out lg:w-2/3 lg:border-l lg:border-white/10 flex flex-col z-30">
-                
-                <!-- Vista de Placeholder -->
-                <div id="detail-placeholder" class="flex-grow flex-col items-center justify-center text-center text-gray-500 p-8 flex">
-                     <span class="material-symbols-outlined text-6xl mb-4">select_window</span>
-                     <h3 class="text-xl font-semibold text-gray-400">Selecciona un elemento</h3>
-                     <p>Los detalles aparecerán aquí.</p>
-                </div>
-
-                <!-- Paneles de Detalles (controlados por JS) -->
-                <div id="shopping-detail-panel" class="hidden h-full bg-panel-color flex flex-col">
-                    <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
-                        <button id="back-to-shopping-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            <span class="font-semibold">Volver a Listas</span>
-                        </button>
-                    </div>
-                    <div class="p-6 flex-shrink-0">
-                        <h2 id="shopping-detail-title" class="text-3xl font-bold text-white"></h2>
-                    </div>
-                    <div class="flex-grow px-6 space-y-2 overflow-y-auto">
-                        <div id="shopping-items-list" class="space-y-3"></div>
-                    </div>
-                    <div class="p-6 space-y-4 border-t border-white/10">
-                        <form id="add-shopping-item-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
-                            <div class="input-container md:col-span-2">
-                                <input type="text" id="shopping-item-name" placeholder="Producto" class="w-full bg-transparent focus:outline-none" required>
-                            </div>
-                            <div class="input-container">
-                                <input type="number" id="shopping-item-price" placeholder="Precio" min="0" step="0.01" class="w-full bg-transparent focus:outline-none" required>
-                            </div>
-                            <button type="submit" class="add-item-shopping-btn text-white font-semibold py-2 px-4 rounded-lg transition w-full h-full">Añadir Producto</button>
-                        </form>
-                        <div class="flex justify-between items-center text-xl font-bold border-t border-dashed border-white/20 pt-4">
-                            <span class="text-gray-300">Total Pendiente:</span>
-                            <span id="shopping-list-total" class="text-primary">$0.00</span>
+                            </form>
                         </div>
                     </div>
                 </div>
 
-                <div id="project-detail-panel" class="hidden h-full bg-panel-color flex flex-col">
-                    <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
-                        <button id="back-to-projects-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            <span class="font-semibold">Volver a Proyectos</span>
-                        </button>
+                <!-- DETAIL PANE (Columna Derecha / Superposición Móvil) -->
+                <div id="detail-pane" class="bg-panel-color-darker absolute lg:relative inset-0 transform lg:transform-none translate-x-full lg:translate-x-0 transition-transform duration-500 ease-in-out lg:w-2/3 lg:border-l lg:border-white/10 flex flex-col z-30">
+                    
+                    <!-- Vista de Placeholder -->
+                    <div id="detail-placeholder" class="flex-grow flex-col items-center justify-center text-center text-gray-500 p-8 flex">
+                         <span class="material-symbols-outlined text-6xl mb-4">select_window</span>
+                         <h3 class="text-xl font-semibold text-gray-400">Selecciona un elemento</h3>
+                         <p>Los detalles aparecerán aquí.</p>
                     </div>
-                    <div class="p-6 flex-shrink-0">
-                        <h2 id="project-detail-title" class="text-3xl font-bold text-white"></h2>
-                        <p id="project-detail-description" class="text-gray-400 mt-1"></p>
-                    </div>
-                    <div id="project-tasks-list" class="flex-grow p-6 pt-0 space-y-4 overflow-y-auto"></div>
-                </div>
 
-                <div id="task-detail-panel" class="hidden h-full bg-panel-color-darker flex flex-col">
-                    <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
-                        <button id="back-to-list-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
-                            <span class="material-symbols-outlined">arrow_back</span>
-                            <span class="font-semibold">Volver y Guardar</span>
-                        </button>
+                    <!-- Paneles de Detalles (controlados por JS) -->
+                    <div id="shopping-detail-panel" class="hidden h-full bg-panel-color flex flex-col">
+                        <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                            <button id="back-to-shopping-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                <span class="font-semibold">Volver a Listas</span>
+                            </button>
+                        </div>
+                        <div class="p-6 flex-shrink-0">
+                            <h2 id="shopping-detail-title" class="text-3xl font-bold text-white"></h2>
+                        </div>
+                        <div class="flex-grow px-6 space-y-2 overflow-y-auto">
+                            <div id="shopping-items-list" class="space-y-3"></div>
+                        </div>
+                        <div class="p-6 space-y-4 border-t border-white/10">
+                            <form id="add-shopping-item-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 items-center">
+                                <div class="input-container md:col-span-2">
+                                    <input type="text" id="shopping-item-name" placeholder="Producto" class="w-full bg-transparent focus:outline-none" required>
+                                </div>
+                                <div class="input-container">
+                                    <input type="number" id="shopping-item-price" placeholder="Precio" min="0" step="0.01" class="w-full bg-transparent focus:outline-none" required>
+                                </div>
+                                <button type="submit" class="add-item-shopping-btn text-white font-semibold py-2 px-4 rounded-lg transition w-full h-full">Añadir Producto</button>
+                            </form>
+                            <div class="flex justify-between items-center text-xl font-bold border-t border-dashed border-white/20 pt-4">
+                                <span class="text-gray-300">Total Pendiente:</span>
+                                <span id="shopping-list-total" class="text-primary">$0.00</span>
+                            </div>
+                        </div>
                     </div>
-                    <div class="flex-grow p-6 overflow-y-auto">
-                        <form id="edit-task-form">
-                            <div class="input-container mb-2">
-                                <input type="text" id="edit-task-name" class="w-full bg-transparent text-white text-3xl font-bold focus:outline-none">
-                            </div>
-                            <div class="input-container my-2">
-                                <textarea id="edit-task-description" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400 text-lg" rows="3"></textarea>
-                            </div>
-                            
-                            <div class="mt-6 border-t border-white/10 pt-6">
-                                <h4 class="text-lg font-semibold text-gray-200 mb-3 flex items-center gap-2"><span class="material-symbols-outlined">checklist</span> Subtareas</h4>
-                                <div id="edit-subtasks-container" class="space-y-2"></div>
-                                <div class="flex items-center mt-3 gap-2">
-                                    <div class="input-container flex-grow">
-                                        <input type="text" id="edit-subtask-input" placeholder="Añadir subtarea..." class="w-full bg-transparent text-gray-300 focus:outline-none">
+
+                    <div id="project-detail-panel" class="hidden h-full bg-panel-color flex flex-col">
+                        <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                            <button id="back-to-projects-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                <span class="font-semibold">Volver a Proyectos</span>
+                            </button>
+                        </div>
+                        <div class="p-6 flex-shrink-0">
+                            <h2 id="project-detail-title" class="text-3xl font-bold text-white"></h2>
+                            <p id="project-detail-description" class="text-gray-400 mt-1"></p>
+                        </div>
+                        <div id="project-tasks-list" class="flex-grow p-6 pt-0 space-y-4 overflow-y-auto"></div>
+                    </div>
+
+                    <div id="task-detail-panel" class="hidden h-full bg-panel-color-darker flex flex-col">
+                        <div class="p-4 border-b border-white/10 flex justify-between items-center flex-shrink-0">
+                            <button id="back-to-list-btn" class="flex items-center gap-2 text-gray-300 hover:text-white">
+                                <span class="material-symbols-outlined">arrow_back</span>
+                                <span class="font-semibold">Volver y Guardar</span>
+                            </button>
+                        </div>
+                        <div class="flex-grow p-6 overflow-y-auto">
+                            <form id="edit-task-form">
+                                <div class="input-container mb-2">
+                                    <input type="text" id="edit-task-name" class="w-full bg-transparent text-white text-3xl font-bold focus:outline-none">
+                                </div>
+                                <div class="input-container my-2">
+                                    <textarea id="edit-task-description" placeholder="Añadir descripción..." class="w-full bg-transparent focus:outline-none resize-none text-gray-400 text-lg" rows="3"></textarea>
+                                </div>
+                                
+                                <div class="mt-6 border-t border-white/10 pt-6">
+                                    <h4 class="text-lg font-semibold text-gray-200 mb-3 flex items-center gap-2"><span class="material-symbols-outlined">checklist</span> Subtareas</h4>
+                                    <div id="edit-subtasks-container" class="space-y-2"></div>
+                                    <div class="flex items-center mt-3 gap-2">
+                                        <div class="input-container flex-grow">
+                                            <input type="text" id="edit-subtask-input" placeholder="Añadir subtarea..." class="w-full bg-transparent text-gray-300 focus:outline-none">
+                                        </div>
+                                        <button type="button" id="edit-add-subtask-btn" class="text-primary hover:opacity-80 p-1 rounded-full"><span class="material-symbols-outlined">add_circle</span></button>
                                     </div>
-                                    <button type="button" id="edit-add-subtask-btn" class="text-primary hover:opacity-80 p-1 rounded-full"><span class="material-symbols-outlined">add_circle</span></button>
                                 </div>
-                            </div>
 
-                            <div class="mt-6 border-t border-white/10 pt-6">
-                                <h4 class="text-lg font-semibold text-gray-200 mb-3 flex items-center gap-2"><span class="material-symbols-outlined">perm_media</span> Medios</h4>
-                                <div id="edit-image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div>
-                                <button type="button" id="edit-add-photo-btn" class="add-media-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm">
-                                    <span class="material-symbols-outlined">add_photo_alternate</span>
-                                    <span>Añadir Medios</span>
-                                </button>
-                                <input type="file" id="edit-image-file-input" class="hidden" multiple accept="image/*">
-                            </div>
+                                <div class="mt-6 border-t border-white/10 pt-6">
+                                    <h4 class="text-lg font-semibold text-gray-200 mb-3 flex items-center gap-2"><span class="material-symbols-outlined">perm_media</span> Medios</h4>
+                                    <div id="edit-image-previews" class="flex gap-3 mb-2 overflow-x-auto py-2"></div>
+                                    <button type="button" id="edit-add-photo-btn" class="add-media-btn flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-sm">
+                                        <span class="material-symbols-outlined">add_photo_alternate</span>
+                                        <span>Añadir Medios</span>
+                                    </button>
+                                    <input type="file" id="edit-image-file-input" class="hidden" multiple accept="image/*">
+                                </div>
 
-                            <div class="mt-6 border-t border-white/10 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div>
-                                    <h4 class="text-lg font-semibold text-gray-200 mb-3">Fecha Límite</h4>
-                                    <input type="datetime-local" id="edit-task-due-date" class="bg-white/5 text-white focus:outline-none w-full p-2 rounded-md border border-white/10">
+                                <div class="mt-6 border-t border-white/10 pt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div>
+                                        <h4 class="text-lg font-semibold text-gray-200 mb-3">Fecha Límite</h4>
+                                        <input type="datetime-local" id="edit-task-due-date" class="bg-white/5 text-white focus:outline-none w-full p-2 rounded-md border border-white/10">
+                                    </div>
+                                    <div>
+                                       <h4 class="text-lg font-semibold text-gray-200 mb-3">Color de Etiqueta</h4>
+                                       <div id="edit-color-picker" class="flex gap-2 items-center p-2 rounded-md border border-white/10 h-[42px]"></div>
+                                    </div>
                                 </div>
-                                <div>
-                                   <h4 class="text-lg font-semibold text-gray-200 mb-3">Color de Etiqueta</h4>
-                                   <div id="edit-color-picker" class="flex gap-2 items-center p-2 rounded-md border border-white/10 h-[42px]"></div>
-                                </div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
 
-    <!-- Taskbar: Made responsive. Full-width on mobile, pill on sm+ -->
-    <nav class="taskbar fixed inset-x-0 bottom-0 sm:inset-x-auto sm:left-1/2 sm:-translate-x-1/2 sm:bottom-4 shadow-lg p-2 flex items-center justify-around sm:justify-center sm:gap-2 sm:p-1.5 z-20">
-        <button data-section="summary" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-2xl">widgets</span></button>
-        <button data-section="tasks" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-2xl">task_alt</span></button>
-        <button data-section="projects" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-2xl">folder_special</span></button>
-        <button data-section="shopping" class="taskbar-button text-gray-300 hover:bg-gray-700/50"><span class="material-symbols-outlined text-2xl">shopping_cart</span></button>
-    </nav>
+    <!-- REMOVED: Old Taskbar Navigation is gone -->
     
     <!-- Image Viewer Modal -->
     <div id="image-modal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
@@ -229,4 +264,3 @@
     <script type="module" src="mytime.js"></script>
 </body>
 </html>
-

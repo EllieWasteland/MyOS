@@ -15,10 +15,9 @@ let newSelectedColor = null;
 // --- DOM ELEMENTS ---
 const sections = { summary: document.getElementById('summary-section'), tasks: document.getElementById('tasks-section'), projects: document.getElementById('projects-section'), shopping: document.getElementById('shopping-section') };
 const lists = { tasks: document.getElementById('tasks-list'), projects: document.getElementById('projects-list'), shopping: document.getElementById('shopping-list') };
-const dockButtons = document.querySelectorAll('.taskbar-button');
+const sidebarButtons = document.querySelectorAll('.sidebar-button'); // UPDATED: From dockButtons to sidebarButtons
 const addTaskContainer = document.getElementById('add-task-container');
 const wallpaperBg = document.getElementById('wallpaper-bg');
-const taskbar = document.querySelector('.taskbar'); // Elemento del menú de navegación
 
 // Modal elements
 const imageModal = document.getElementById('image-modal');
@@ -60,7 +59,7 @@ function startCountdownUpdates() {
 }
 
 function updateNavUI() { 
-    dockButtons.forEach(b => b.classList.toggle('active', b.dataset.section === currentSection)); 
+    sidebarButtons.forEach(b => b.classList.toggle('active', b.dataset.section === currentSection)); 
 }
 
 // --- RENDER FUNCTIONS ---
@@ -213,7 +212,6 @@ async function showSection(sectionKey) {
 }
 
 function openDetailView(panelToShow) {
-    taskbar.classList.add('hidden'); // Oculta el menú flotante
     detailPlaceholder.classList.add('hidden');
     [taskDetailPanel, projectDetailPanel, shoppingDetailPanel].forEach(p => {
         p.classList.toggle('hidden', p !== panelToShow);
@@ -226,7 +224,6 @@ function openDetailView(panelToShow) {
 }
 
 async function closeActiveDetailPanel({shouldSave = true} = {}) {
-    taskbar.classList.remove('hidden'); // Muestra el menú flotante
     // MEJORA: Mueve el contenedor de añadir tarea de vuelta al panel de lista principal
     listPane.appendChild(addTaskContainer);
 
@@ -401,7 +398,7 @@ async function handleListClick(e) {
 }
 
 function setupEventListeners() {
-    dockButtons.forEach(button => button.addEventListener('click', () => showSection(button.dataset.section)));
+    sidebarButtons.forEach(button => button.addEventListener('click', () => showSection(button.dataset.section)));
     Object.values(lists).forEach(list => list.addEventListener('click', handleListClick));
     document.getElementById('project-tasks-list').addEventListener('click', handleListClick);
     setupAddTaskForm();
@@ -680,4 +677,3 @@ async function initializeApp() {
 }
 
 initializeApp();
-
